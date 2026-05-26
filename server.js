@@ -12,26 +12,33 @@ const rankingRoutes = require('./src/routes/ranking')
 const app = express()
 const PORT = process.env.PORT || 3333
 
+app.set('trust proxy', true)
+
 // ─── CORS ────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'http://localhost:5173',
-  'http://localhost:3000',
+  process.env.FRONTEND_URL, // Vai ler o link da Vercel do painel do Railway
   'http://localhost:5173',
-]
+  'http://localhost:3000'
+].filter(Boolean)
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Permite requisições sem origin (ex: Postman, mobile apps)
-      if (!origin) return callback(null, true)
-      if (allowedOrigins.includes(origin)) return callback(null, true)
-      callback(new Error(`CORS bloqueado para origin: ${origin}`))
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+
+      console.log(`⚠️ Origem bloqueada pelo CORS do servidor: ${origin}`)
+      return callback(new Error('Not allowed by CORS'))
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
+    optionsSuccessStatus: 200
   })
 )
+
+app.options('*', cors())
 
 // ─── MIDDLEWARES GLOBAIS ──────────────────────────────────────────────────────
 app.use(express.json())
