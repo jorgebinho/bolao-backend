@@ -1,0 +1,71 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MatchStatus {
+  UPCOMING    // Ainda não começou, apostas abertas
+  LOCKED      // Apostas fechadas (< 15min para o jogo)
+  FINISHED    // Resultado inserido, pontos calculados
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  googleId  String?  @unique  // Reservado para migração futura OAuth
+  role      Role     @default(USER)
+  points    Int      @default(0)
+  guesses   Guess[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Match {
+  id           String      @id @default(cuid())
+  homeTeam     String
+  awayTeam     String
+  homeFlag     String?     // URL da bandeira do time da casa
+  awayFlag     String?     // URL da bandeira do time visitante
+  matchDate    DateTime    // Data e hora oficial do jogo (UTC)
+  stage        String?     // Ex: "Fase de Grupos - Grupo A", "Quartas de Final"
+  status       MatchStatus @default(UPCOMING)
+  homeScore    Int?        // Resultado real - placar do time da casa
+  awayScore    Int?        // Resultado real - placar do time visitante
+  guesses      Guess[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("matches")
+}
+
+model Guess {
+  id             String   @id @default(cuid())
+  userId         String
+  matchId        String
+  homeGuess      Int      // Palpite placar casa
+  awayGuess      Int      // Palpite placar visitante
+  points         Int      @default(0) // 0, 1 ou 2 pontos
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match          Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, matchId]) // Um palpite por usuário por jogo
+  @@map("guesses")
+}
