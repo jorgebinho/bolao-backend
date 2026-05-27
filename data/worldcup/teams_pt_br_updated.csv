@@ -1,0 +1,49 @@
+id,team_name,fifa_code,group_letter,is_placeholder
+1,México,MEX,A,False
+2,África do Sul,RSA,A,False
+3,Coreia do Sul,KOR,A,False
+4,República Tcheca,CZE,A,False
+5,Canadá,CAN,B,False
+6,Bósnia e Herzegovina,BIH,B,False
+7,Catar,QAT,B,False
+8,Suíça,SUI,B,False
+9,Brasil,BRA,C,False
+10,Marrocos,MAR,C,False
+11,Haiti,HAI,C,False
+12,Escócia,SCO,C,False
+13,Estados Unidos,USA,D,False
+14,Paraguai,PAR,D,False
+15,Austrália,AUS,D,False
+16,Turquia,TUR,D,False
+17,Alemanha,GER,E,False
+18,Curaçao,CUR,E,False
+19,Costa do Marfim,CIV,E,False
+20,Equador,ECU,E,False
+21,Holanda,NED,F,False
+22,Japão,JPN,F,False
+23,Suécia,SWE,F,False
+24,Tunísia,TUN,F,False
+25,Bélgica,BEL,G,False
+26,Egito,EGY,G,False
+27,Irã,IRN,G,False
+28,Nova Zelândia,NZL,G,False
+29,Espanha,ESP,H,False
+30,Cabo Verde,CPV,H,False
+31,Arábia Saudita,KSA,H,False
+32,Uruguai,URU,H,False
+33,França,FRA,I,False
+34,Senegal,SEN,I,False
+35,Iraque,IRQ,I,False
+36,Noruega,NOR,I,False
+37,Argentina,ARG,J,False
+38,Argélia,ALG,J,False
+39,Áustria,AUT,J,False
+40,Jordânia,JOR,J,False
+41,Portugal,POR,K,False
+42,República Democrática do Congo,COD,K,False
+43,Uzbequistão,UZB,K,False
+44,Colômbia,COL,K,False
+45,Inglaterra,ENG,L,False
+46,Croácia,CRO,L,False
+47,Gana,GHA,L,False
+48,Panamá,PAN,L,False

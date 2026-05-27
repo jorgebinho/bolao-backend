@@ -6,8 +6,9 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
-const ARCHIVE_DIR = process.env.WORLDCUP_DATASET_DIR || 'C:\\Users\\bNd\\Downloads\\archive';
-const TEAMS_PT_BR_FILE = process.env.WORLDCUP_TEAMS_PT_BR_PATH || 'C:\\Users\\bNd\\Downloads\\teams_pt_br_updated.csv';
+const WORLDCUP_DATA_DIR = path.resolve(__dirname, '..', 'data', 'worldcup');
+const ARCHIVE_DIR = process.env.WORLDCUP_DATASET_DIR || WORLDCUP_DATA_DIR;
+const TEAMS_PT_BR_FILE = process.env.WORLDCUP_TEAMS_PT_BR_PATH || path.join(WORLDCUP_DATA_DIR, 'teams_pt_br_updated.csv');
 
 const STAGE_LABELS = {
   'Group Stage': 'Fase de Grupos',

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATASET_DIR = process.env.WORLDCUP_DATASET_DIR || 'C:\\Users\\bNd\\Downloads';
-const TEAMS_PT_BR_PATH = process.env.WORLDCUP_TEAMS_PT_BR_PATH || path.join(DATASET_DIR, 'teams_pt_br_updated.csv');
+const WORLDCUP_DATA_DIR = path.resolve(__dirname, '..', '..', 'data', 'worldcup');
+const TEAMS_PT_BR_PATH = process.env.WORLDCUP_TEAMS_PT_BR_PATH || path.join(WORLDCUP_DATA_DIR, 'teams_pt_br_updated.csv');
 
 function readCsv(filePath) {
   const content = fs.readFileSync(filePath, 'utf8').trim();
