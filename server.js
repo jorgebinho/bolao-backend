@@ -7,7 +7,11 @@ const cors = require('cors')
 const authRoutes = require('./src/routes/auth')
 const matchesRoutes = require('./src/routes/matches')
 const adminRoutes = require('./src/routes/admin')
-const rankingRoutes = require('./src/routes/ranking')
+const { router: rankingRoutes } = require('./src/routes/ranking')
+const groupsRoutes = require('./src/routes/groups')
+const usersRoutes = require('./src/routes/users')
+const championGuessRoutes = require('./src/routes/championGuess')
+const roundsRoutes = require('./src/routes/rounds')
 
 const app = express()
 const PORT = process.env.PORT || 3333
@@ -58,6 +62,10 @@ app.use('/auth', authRoutes)
 app.use('/matches', matchesRoutes)
 app.use('/admin', adminRoutes)
 app.use('/ranking', rankingRoutes)
+app.use('/groups', groupsRoutes)
+app.use('/users', usersRoutes)
+app.use('/champion-guess', championGuessRoutes)
+app.use('/rounds', roundsRoutes)
 
 // ─── 404 HANDLER ─────────────────────────────────────────────────────────────
 app.use((req, res) => {

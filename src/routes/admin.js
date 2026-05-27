@@ -1,23 +1,28 @@
-// src/routes/admin.js
 const express = require('express');
 const prisma = require('../lib/prisma');
 const { authenticate, requireAdmin } = require('../middleware/auth');
+const { calculateMatchPoints, CHAMPION_BONUS_POINTS } = require('../services/scoring');
 
 const router = express.Router();
 
-// Aplica autenticação + verificação de ADMIN em todas as rotas deste router
 router.use(authenticate, requireAdmin);
 
-// ─────────────────────────────────────────────
-// JOGOS (MATCHES)
-// ─────────────────────────────────────────────
+function cleanText(value) {
+  const text = String(value || '').trim();
+  return text || null;
+}
 
-// POST /admin/matches — Criar novo jogo
 router.post('/matches', async (req, res) => {
-  const { homeTeam, awayTeam, homeFlag, awayFlag, matchDate, stage } = req.body;
+  const homeTeam = cleanText(req.body.homeTeam);
+  const awayTeam = cleanText(req.body.awayTeam);
+  const matchDate = req.body.matchDate ? new Date(req.body.matchDate) : null;
 
-  if (!homeTeam || !awayTeam || !matchDate) {
-    return res.status(400).json({ error: 'Times e data do jogo são obrigatórios.' });
+  if (!homeTeam || !awayTeam || !matchDate || Number.isNaN(matchDate.getTime())) {
+    return res.status(400).json({ error: 'Times e data do jogo sao obrigatorios.' });
+  }
+
+  if (homeTeam === awayTeam) {
+    return res.status(400).json({ error: 'Os times do jogo devem ser diferentes.' });
   }
 
   try {
@@ -25,10 +30,10 @@ router.post('/matches', async (req, res) => {
       data: {
         homeTeam,
         awayTeam,
-        homeFlag: homeFlag || null,
-        awayFlag: awayFlag || null,
-        matchDate: new Date(matchDate),
-        stage: stage || null,
+        homeFlag: cleanText(req.body.homeFlag),
+        awayFlag: cleanText(req.body.awayFlag),
+        matchDate,
+        stage: cleanText(req.body.stage),
       },
     });
 
@@ -39,31 +44,36 @@ router.post('/matches', async (req, res) => {
   }
 });
 
-// PUT /admin/matches/:id — Editar jogo existente (apenas UPCOMING/LOCKED)
 router.put('/matches/:id', async (req, res) => {
   const { id } = req.params;
-  const { homeTeam, awayTeam, homeFlag, awayFlag, matchDate, stage } = req.body;
 
   try {
     const match = await prisma.match.findUnique({ where: { id } });
-
-    if (!match) {
-      return res.status(404).json({ error: 'Jogo não encontrado.' });
+    if (!match) return res.status(404).json({ error: 'Jogo nao encontrado.' });
+    if (match.status === 'FINISHED') {
+      return res.status(400).json({ error: 'Nao e possivel editar um jogo ja finalizado.' });
     }
 
-    if (match.status === 'FINISHED') {
-      return res.status(400).json({ error: 'Não é possível editar um jogo já finalizado.' });
+    const nextDate = req.body.matchDate ? new Date(req.body.matchDate) : match.matchDate;
+    if (Number.isNaN(nextDate.getTime())) {
+      return res.status(400).json({ error: 'Data do jogo invalida.' });
+    }
+
+    const homeTeam = cleanText(req.body.homeTeam) || match.homeTeam;
+    const awayTeam = cleanText(req.body.awayTeam) || match.awayTeam;
+    if (homeTeam === awayTeam) {
+      return res.status(400).json({ error: 'Os times do jogo devem ser diferentes.' });
     }
 
     const updated = await prisma.match.update({
       where: { id },
       data: {
-        homeTeam: homeTeam ?? match.homeTeam,
-        awayTeam: awayTeam ?? match.awayTeam,
-        homeFlag: homeFlag !== undefined ? homeFlag : match.homeFlag,
-        awayFlag: awayFlag !== undefined ? awayFlag : match.awayFlag,
-        matchDate: matchDate ? new Date(matchDate) : match.matchDate,
-        stage: stage !== undefined ? stage : match.stage,
+        homeTeam,
+        awayTeam,
+        homeFlag: req.body.homeFlag !== undefined ? cleanText(req.body.homeFlag) : match.homeFlag,
+        awayFlag: req.body.awayFlag !== undefined ? cleanText(req.body.awayFlag) : match.awayFlag,
+        matchDate: nextDate,
+        stage: req.body.stage !== undefined ? cleanText(req.body.stage) : match.stage,
       },
     });
 
@@ -74,19 +84,14 @@ router.put('/matches/:id', async (req, res) => {
   }
 });
 
-// DELETE /admin/matches/:id — Remover jogo (só se UPCOMING)
 router.delete('/matches/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
     const match = await prisma.match.findUnique({ where: { id } });
-
-    if (!match) {
-      return res.status(404).json({ error: 'Jogo não encontrado.' });
-    }
-
+    if (!match) return res.status(404).json({ error: 'Jogo nao encontrado.' });
     if (match.status !== 'UPCOMING') {
-      return res.status(400).json({ error: 'Só é possível deletar jogos que ainda não foram bloqueados.' });
+      return res.status(400).json({ error: 'So e possivel deletar jogos que ainda nao foram bloqueados.' });
     }
 
     await prisma.match.delete({ where: { id } });
@@ -97,43 +102,13 @@ router.delete('/matches/:id', async (req, res) => {
   }
 });
 
-// ─────────────────────────────────────────────
-// PONTUAÇÃO (SCORE MATCH)
-// ─────────────────────────────────────────────
-
-/**
- * Calcula pontos para um palpite com base no resultado real.
- * 2 pts = acerto do placar exato
- * 1 pt  = acertou o vencedor (ou o empate), mas errou o placar
- * 0 pt  = errou tudo
- */
-function calculatePoints(homeGuess, awayGuess, homeScore, awayScore) {
-  // Acerto exato do placar
-  if (homeGuess === homeScore && awayGuess === awayScore) {
-    return 2;
-  }
-
-  const guessResult = Math.sign(homeGuess - awayGuess); // -1, 0, ou 1
-  const realResult = Math.sign(homeScore - awayScore);  // -1, 0, ou 1
-
-  // Acertou o vencedor ou o empate
-  if (guessResult === realResult) {
-    return 1;
-  }
-
-  return 0;
-}
-
-// POST /admin/score-match — Inserir resultado e calcular pontuações
 router.post('/score-match', async (req, res) => {
-  const { matchId, homeScore, awayScore } = req.body;
+  const { matchId } = req.body;
+  const homeScore = Number(req.body.homeScore);
+  const awayScore = Number(req.body.awayScore);
 
-  if (!matchId || homeScore === undefined || awayScore === undefined) {
-    return res.status(400).json({ error: 'matchId, homeScore e awayScore são obrigatórios.' });
-  }
-
-  if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0) {
-    return res.status(400).json({ error: 'Placar deve ser número inteiro não negativo.' });
+  if (!matchId || !Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0) {
+    return res.status(400).json({ error: 'matchId, homeScore e awayScore validos sao obrigatorios.' });
   }
 
   try {
@@ -142,77 +117,81 @@ router.post('/score-match', async (req, res) => {
       include: { guesses: true },
     });
 
-    if (!match) {
-      return res.status(404).json({ error: 'Jogo não encontrado.' });
-    }
-
+    if (!match) return res.status(404).json({ error: 'Jogo nao encontrado.' });
     if (match.status === 'FINISHED') {
-      return res.status(400).json({ error: 'Este jogo já foi pontuado.' });
+      return res.status(400).json({ error: 'Este jogo ja foi pontuado.' });
     }
 
-    // Calcular pontos para cada palpite dentro de uma transação atômica
-    const updates = match.guesses.map((guess) => {
-      const points = calculatePoints(guess.homeGuess, guess.awayGuess, homeScore, awayScore);
-      return { guessId: guess.id, userId: guess.userId, points };
-    });
+    const updates = match.guesses.map((guess) => ({
+      guessId: guess.id,
+      userId: guess.userId,
+      points: calculateMatchPoints(guess.homeGuess, guess.awayGuess, homeScore, awayScore),
+    }));
 
-    // Executar tudo em uma transação: atualiza guesses + pontos dos usuários + status do jogo
     await prisma.$transaction(async (tx) => {
-      // 1. Atualizar pontos de cada palpite
       for (const { guessId, points } of updates) {
-        await tx.guess.update({
-          where: { id: guessId },
-          data: { points },
-        });
+        await tx.guess.update({ where: { id: guessId }, data: { points } });
       }
 
-      // 2. Somar pontos no total de cada usuário
       for (const { userId, points } of updates) {
         if (points > 0) {
-          await tx.user.update({
-            where: { id: userId },
-            data: { points: { increment: points } },
-          });
+          await tx.user.update({ where: { id: userId }, data: { points: { increment: points } } });
         }
       }
 
-      // 3. Marcar o jogo como FINISHED e salvar o resultado real
       await tx.match.update({
         where: { id: matchId },
-        data: {
-          status: 'FINISHED',
-          homeScore,
-          awayScore,
-        },
+        data: { status: 'FINISHED', homeScore, awayScore },
       });
     });
 
-    // Buscar jogo atualizado para retornar
     const updatedMatch = await prisma.match.findUnique({
       where: { id: matchId },
-      include: {
-        guesses: {
-          include: { user: { select: { id: true, name: true } } },
-        },
-      },
+      include: { guesses: { include: { user: { select: { id: true, name: true } } } } },
     });
 
     return res.json({
-      message: `Jogo pontuado com sucesso! ${updates.length} palpite(s) processado(s).`,
+      message: `Jogo pontuado com sucesso. ${updates.length} palpite(s) processado(s).`,
       match: updatedMatch,
       summary: updates,
     });
   } catch (err) {
     console.error('Erro ao pontuar jogo:', err);
-    return res.status(500).json({ error: 'Erro ao processar pontuação.' });
+    return res.status(500).json({ error: 'Erro ao processar pontuacao.' });
   }
 });
 
-// ─────────────────────────────────────────────
-// USUÁRIOS (ADMIN)
-// ─────────────────────────────────────────────
+router.post('/champion-result', async (req, res) => {
+  const champion = cleanText(req.body.champion);
+  if (!champion) return res.status(400).json({ error: 'Campeao oficial e obrigatorio.' });
 
-// GET /admin/users — Listar todos os usuários
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.appConfig.upsert({
+        where: { key: 'champion_result' },
+        update: { value: champion },
+        create: { key: 'champion_result', value: champion },
+      });
+
+      const guesses = await tx.championGuess.findMany();
+      for (const guess of guesses) {
+        const isCorrect = guess.team.toLowerCase() === champion.toLowerCase();
+        await tx.championGuess.update({
+          where: { id: guess.id },
+          data: { isCorrect, points: isCorrect ? CHAMPION_BONUS_POINTS : 0 },
+        });
+      }
+
+      return { processed: guesses.length };
+    });
+
+    return res.json({ champion, ...result, message: 'Campeao oficial salvo.' });
+  } catch (err) {
+    console.error('Erro ao salvar campeao:', err);
+    return res.status(500).json({ error: 'Erro ao salvar campeao oficial.' });
+  }
+});
+
 router.get('/users', async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -223,53 +202,42 @@ router.get('/users', async (req, res) => {
         role: true,
         points: true,
         createdAt: true,
-        _count: { select: { guesses: true } },
+        _count: { select: { guesses: true, groupMemberships: true } },
+        championGuess: { select: { team: true, points: true, isCorrect: true } },
       },
-      orderBy: { points: 'desc' },
+      orderBy: [{ points: 'desc' }, { name: 'asc' }],
     });
 
     return res.json({ users });
   } catch (err) {
-    console.error('Erro ao listar usuários:', err);
-    return res.status(500).json({ error: 'Erro ao buscar usuários.' });
+    console.error('Erro ao listar usuarios:', err);
+    return res.status(500).json({ error: 'Erro ao buscar usuarios.' });
   }
 });
 
-// DELETE /admin/users/:id — Remover usuário do bolão
 router.delete('/users/:id', async (req, res) => {
   const { id } = req.params;
-
-  if (id === req.user.id) {
-    return res.status(400).json({ error: 'Você não pode remover a si mesmo.' });
-  }
+  if (id === req.user.id) return res.status(400).json({ error: 'Voce nao pode remover a si mesmo.' });
 
   try {
     const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
-    }
+    if (!user) return res.status(404).json({ error: 'Usuario nao encontrado.' });
 
     await prisma.user.delete({ where: { id } });
-    return res.json({ message: `Usuário "${user.name}" removido com sucesso.` });
+    return res.json({ message: `Usuario "${user.name}" removido com sucesso.` });
   } catch (err) {
-    console.error('Erro ao remover usuário:', err);
-    return res.status(500).json({ error: 'Erro ao remover usuário.' });
+    console.error('Erro ao remover usuario:', err);
+    return res.status(500).json({ error: 'Erro ao remover usuario.' });
   }
 });
 
-// PATCH /admin/users/:id/promote — Promover usuário para ADMIN
 router.patch('/users/:id/promote', async (req, res) => {
   const { id } = req.params;
 
   try {
     const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
-    }
-
-    if (user.role === 'ADMIN') {
-      return res.status(400).json({ error: 'Este usuário já é administrador.' });
-    }
+    if (!user) return res.status(404).json({ error: 'Usuario nao encontrado.' });
+    if (user.role === 'ADMIN') return res.status(400).json({ error: 'Este usuario ja e administrador.' });
 
     const updated = await prisma.user.update({
       where: { id },
@@ -277,20 +245,16 @@ router.patch('/users/:id/promote', async (req, res) => {
       select: { id: true, name: true, email: true, role: true },
     });
 
-    return res.json({ user: updated, message: `${updated.name} agora é ADMIN.` });
+    return res.json({ user: updated, message: `${updated.name} agora e ADMIN.` });
   } catch (err) {
-    console.error('Erro ao promover usuário:', err);
-    return res.status(500).json({ error: 'Erro ao promover usuário.' });
+    console.error('Erro ao promover usuario:', err);
+    return res.status(500).json({ error: 'Erro ao promover usuario.' });
   }
 });
 
-// PATCH /admin/users/:id/demote — Rebaixar ADMIN para USER
 router.patch('/users/:id/demote', async (req, res) => {
   const { id } = req.params;
-
-  if (id === req.user.id) {
-    return res.status(400).json({ error: 'Você não pode rebaixar a si mesmo.' });
-  }
+  if (id === req.user.id) return res.status(400).json({ error: 'Voce nao pode rebaixar a si mesmo.' });
 
   try {
     const updated = await prisma.user.update({
@@ -301,8 +265,8 @@ router.patch('/users/:id/demote', async (req, res) => {
 
     return res.json({ user: updated });
   } catch (err) {
-    console.error('Erro ao rebaixar usuário:', err);
-    return res.status(500).json({ error: 'Erro ao rebaixar usuário.' });
+    console.error('Erro ao rebaixar usuario:', err);
+    return res.status(500).json({ error: 'Erro ao rebaixar usuario.' });
   }
 });
 
