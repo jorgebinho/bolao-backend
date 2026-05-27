@@ -1,13 +1,13 @@
 // server.js — Ponto de entrada do bolao-backend
-require('dotenv').config()
+import 'dotenv/config'
 
-const express = require('express')
-const cors = require('cors')
+import express from 'express'
+import cors from 'cors'
 
-const authRoutes = require('./src/routes/auth')
-const matchesRoutes = require('./src/routes/matches')
-const adminRoutes = require('./src/routes/admin')
-const rankingRoutes = require('./src/routes/ranking')
+import { router as authRoutes } from './src/routes/auth.js'
+import { router as matchesRoutes } from './src/routes/matches.js'
+import { router as adminRoutes } from './src/routes/admin.js'
+import { router as rankingRoutes } from './src/routes/ranking.js'
 
 const app = express()
 const PORT = process.env.PORT || 3333

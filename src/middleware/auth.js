@@ -1,9 +1,9 @@
 // src/middleware/auth.js
-const jwt = require('jsonwebtoken');
-const prisma = require('../lib/prisma');
+import jwt from 'jsonwebtoken';
+import { prisma } from '../lib/prisma.js';
 
 // Middleware de autenticação: valida o JWT e injeta req.user
-async function authenticate(req, res, next) {
+export async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -32,11 +32,9 @@ async function authenticate(req, res, next) {
 }
 
 // Middleware de autorização: garante que o usuário é ADMIN
-function requireAdmin(req, res, next) {
+export function requireAdmin(req, res, next) {
   if (!req.user || req.user.role !== 'ADMIN') {
     return res.status(403).json({ error: 'Acesso negado. Requer permissão de administrador.' });
   }
   next();
 }
-
-module.exports = { authenticate, requireAdmin };
