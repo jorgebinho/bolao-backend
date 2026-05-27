@@ -1,11 +1,11 @@
 // src/routes/auth.js
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const prisma = require('../lib/prisma');
-const { authenticate } = require('../middleware/auth');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { prisma } from '../lib/prisma.js';
+import { authenticate } from '../middleware/auth.js';
 
-const router = express.Router();
+export const router = express.Router();
 
 // POST /auth/register — Cadastro de novo usuário
 router.post('/register', async (req, res) => {
@@ -83,5 +83,3 @@ router.post('/login', async (req, res) => {
 router.get('/me', authenticate, async (req, res) => {
   return res.json({ user: req.user });
 });
-
-module.exports = router;

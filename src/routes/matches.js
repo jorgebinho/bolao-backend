@@ -1,9 +1,9 @@
 // src/routes/matches.js
-const express = require('express');
-const prisma = require('../lib/prisma');
-const { authenticate } = require('../middleware/auth');
+import express from 'express';
+import { prisma } from '../lib/prisma.js';
+import { authenticate } from '../middleware/auth.js';
 
-const router = express.Router();
+export const router = express.Router();
 
 // Retorna se um jogo está bloqueado para apostas (15 min antes)
 function isMatchLocked(matchDate) {
@@ -149,5 +149,3 @@ router.post('/:id/guess', authenticate, async (req, res) => {
     return res.status(500).json({ error: 'Erro ao salvar palpite.' });
   }
 });
-
-module.exports = router;
