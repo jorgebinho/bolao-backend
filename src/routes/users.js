@@ -4,7 +4,7 @@ const prisma = require('../lib/prisma');
 const { authenticate } = require('../middleware/auth');
 const { buildRanking } = require('./ranking');
 
-const router = express.Router();
+export const router = express.Router();
 
 router.use(authenticate);
 
@@ -136,5 +136,3 @@ router.patch('/me/password', async (req, res) => {
     return res.status(500).json({ error: 'Erro ao alterar senha.' });
   }
 });
-
-module.exports = router;

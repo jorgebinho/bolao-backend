@@ -1,52 +1,52 @@
-function getMatchLockTime(matchDate) {
-  return new Date(new Date(matchDate).getTime() - 15 * 60 * 1000);
+export function getMatchLockTime(matchDate) {
+  return new Date(new Date(matchDate).getTime() - 15 * 60 * 1000)
 }
 
-function isMatchLocked(matchDate) {
-  return new Date() >= getMatchLockTime(matchDate);
+export function isMatchLocked(matchDate) {
+  return new Date() >= getMatchLockTime(matchDate)
 }
 
-function isPendingUrgent(match, userId) {
-  if (match.status !== 'UPCOMING') return false;
-  if (match.guesses?.some((guess) => guess.userId === userId)) return false;
+export function isPendingUrgent(match, userId) {
+  if (match.status !== 'UPCOMING') return false
+  if (match.guesses?.some((guess) => guess.userId === userId)) return false
 
-  const now = new Date();
-  const lockTime = getMatchLockTime(match.matchDate);
-  const alertStart = new Date(lockTime.getTime() - 60 * 60 * 1000);
+  const now = new Date()
+  const lockTime = getMatchLockTime(match.matchDate)
+  const alertStart = new Date(lockTime.getTime() - 60 * 60 * 1000)
 
-  return now >= alertStart && now < lockTime;
+  return now >= alertStart && now < lockTime
 }
 
-function serializeMatch(match, currentUser) {
+export function serializeMatch(match, currentUser) {
   const currentStatus =
     match.status === 'UPCOMING' && isMatchLocked(match.matchDate)
       ? 'LOCKED'
-      : match.status;
+      : match.status
 
-  const myGuess = match.guesses?.find((guess) => guess.userId === currentUser.id) || null;
-  const canShowAllGuesses = currentStatus === 'LOCKED' || currentStatus === 'FINISHED';
+  const myGuess = match.guesses?.find((guess) => guess.userId === currentUser.id) || null
+  const canShowAllGuesses = currentStatus === 'LOCKED' || currentStatus === 'FINISHED'
   const visibleGuesses = canShowAllGuesses
     ? match.guesses.map((guess) => ({
-        id: guess.id,
-        userId: guess.userId,
-        userName: guess.user?.name || 'Participante',
-        homeGuess: guess.homeGuess,
-        awayGuess: guess.awayGuess,
-        points: guess.points,
-      }))
+      id: guess.id,
+      userId: guess.userId,
+      userName: guess.user?.name || 'Participante',
+      homeGuess: guess.homeGuess,
+      awayGuess: guess.awayGuess,
+      points: guess.points,
+    }))
     : myGuess
       ? [{
-          id: myGuess.id,
-          userId: myGuess.userId,
-          userName: currentUser.name,
-          homeGuess: myGuess.homeGuess,
-          awayGuess: myGuess.awayGuess,
-          points: myGuess.points,
-        }]
-      : [];
+        id: myGuess.id,
+        userId: myGuess.userId,
+        userName: currentUser.name,
+        homeGuess: myGuess.homeGuess,
+        awayGuess: myGuess.awayGuess,
+        points: myGuess.points,
+      }]
+      : []
 
-  const lockTime = getMatchLockTime(match.matchDate);
-  const urgent = isPendingUrgent({ ...match, status: currentStatus }, currentUser.id);
+  const lockTime = getMatchLockTime(match.matchDate)
+  const urgent = isPendingUrgent({ ...match, status: currentStatus }, currentUser.id)
 
   return {
     id: match.id,
@@ -64,20 +64,15 @@ function serializeMatch(match, currentUser) {
     minutesToLock: Math.max(Math.ceil((lockTime.getTime() - Date.now()) / 60000), 0),
     myGuess: myGuess
       ? {
-          id: myGuess.id,
-          homeGuess: myGuess.homeGuess,
-          awayGuess: myGuess.awayGuess,
-          points: myGuess.points,
-        }
+        id: myGuess.id,
+        homeGuess: myGuess.homeGuess,
+        awayGuess: myGuess.awayGuess,
+        points: myGuess.points,
+      }
       : null,
     guesses: visibleGuesses,
     isLocked: currentStatus !== 'UPCOMING',
-  };
+  }
 }
 
-module.exports = {
-  getMatchLockTime,
-  isMatchLocked,
-  isPendingUrgent,
-  serializeMatch,
-};
+

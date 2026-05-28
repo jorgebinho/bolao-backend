@@ -1,6 +1,6 @@
-const GLOBAL_GROUP_CODE = 'GLOBAL';
+export const GLOBAL_GROUP_CODE = 'GLOBAL';
 
-function makeGroupCode(name) {
+export function makeGroupCode(name) {
   const base = String(name || 'grupo')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -13,7 +13,7 @@ function makeGroupCode(name) {
   return `${base}-${suffix}`;
 }
 
-async function ensureGlobalGroup(prisma) {
+export async function ensureGlobalGroup(prisma) {
   return prisma.group.upsert({
     where: { code: GLOBAL_GROUP_CODE },
     update: {},
@@ -26,7 +26,7 @@ async function ensureGlobalGroup(prisma) {
   });
 }
 
-async function ensureGlobalMembership(prisma, userId) {
+export async function ensureGlobalMembership(prisma, userId) {
   const group = await ensureGlobalGroup(prisma);
 
   await prisma.groupMember.upsert({
@@ -38,7 +38,7 @@ async function ensureGlobalMembership(prisma, userId) {
   return group;
 }
 
-async function ensureAllUsersInGlobalGroup(prisma) {
+export async function ensureAllUsersInGlobalGroup(prisma) {
   const group = await ensureGlobalGroup(prisma);
   const users = await prisma.user.findMany({ select: { id: true } });
 
@@ -55,7 +55,7 @@ async function ensureAllUsersInGlobalGroup(prisma) {
   return group;
 }
 
-async function requireGroupMember(prisma, groupId, userId) {
+export async function requireGroupMember(prisma, groupId, userId) {
   const member = await prisma.groupMember.findUnique({
     where: { userId_groupId: { userId, groupId } },
     include: { group: true },
@@ -64,7 +64,7 @@ async function requireGroupMember(prisma, groupId, userId) {
   return member;
 }
 
-function serializeGroupMember(member) {
+export function serializeGroupMember(member) {
   return {
     id: member.group.id,
     name: member.group.name,
@@ -75,13 +75,3 @@ function serializeGroupMember(member) {
     membersCount: member.group._count?.members || 0,
   };
 }
-
-module.exports = {
-  GLOBAL_GROUP_CODE,
-  makeGroupCode,
-  ensureGlobalGroup,
-  ensureGlobalMembership,
-  ensureAllUsersInGlobalGroup,
-  requireGroupMember,
-  serializeGroupMember,
-};

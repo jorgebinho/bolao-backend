@@ -1,13 +1,13 @@
-const express = require('express');
-const prisma = require('../lib/prisma');
-const { authenticate } = require('../middleware/auth');
+const express = require('express')
+const prisma = require('../lib/prisma')
+const { authenticate } = require('../middleware/auth')
 
-const router = express.Router();
+export const router = express.Router()
 
-router.use(authenticate);
+router.use(authenticate)
 
 function normalizeStage(stage) {
-  return stage || 'Sem fase definida';
+  return stage || 'Sem fase definida'
 }
 
 function serializeHistoryGuess(guess) {
@@ -17,7 +17,7 @@ function serializeHistoryGuess(guess) {
     awayGuess: guess.awayGuess,
     points: guess.points,
     match: guess.match,
-  };
+  }
 }
 
 router.get('/', async (req, res) => {
@@ -25,23 +25,23 @@ router.get('/', async (req, res) => {
     const matches = await prisma.match.findMany({
       select: { stage: true, id: true, status: true },
       orderBy: { matchDate: 'asc' },
-    });
+    })
 
-    const map = new Map();
+    const map = new Map()
     for (const match of matches) {
-      const stage = normalizeStage(match.stage);
-      if (!map.has(stage)) map.set(stage, { stage, totalMatches: 0, finishedMatches: 0 });
-      const item = map.get(stage);
-      item.totalMatches += 1;
-      if (match.status === 'FINISHED') item.finishedMatches += 1;
+      const stage = normalizeStage(match.stage)
+      if (!map.has(stage)) map.set(stage, { stage, totalMatches: 0, finishedMatches: 0 })
+      const item = map.get(stage)
+      item.totalMatches += 1
+      if (match.status === 'FINISHED') item.finishedMatches += 1
     }
 
-    return res.json({ rounds: Array.from(map.values()) });
+    return res.json({ rounds: Array.from(map.values()) })
   } catch (err) {
-    console.error('Erro ao listar rodadas:', err);
-    return res.status(500).json({ error: 'Erro ao buscar rodadas.' });
+    console.error('Erro ao listar rodadas:', err)
+    return res.status(500).json({ error: 'Erro ao buscar rodadas.' })
   }
-});
+})
 
 router.get('/me/history', async (req, res) => {
   try {
@@ -62,32 +62,32 @@ router.get('/me/history', async (req, res) => {
           },
         },
       },
-    });
+    })
 
-    const grouped = {};
+    const grouped = {}
     for (const guess of guesses) {
-      const stage = normalizeStage(guess.match.stage);
-      grouped[stage] ||= { stage, totalPoints: 0, guesses: [] };
-      grouped[stage].totalPoints += guess.points;
-      grouped[stage].guesses.push(serializeHistoryGuess(guess));
+      const stage = normalizeStage(guess.match.stage)
+      grouped[stage] ||= { stage, totalPoints: 0, guesses: [] }
+      grouped[stage].totalPoints += guess.points
+      grouped[stage].guesses.push(serializeHistoryGuess(guess))
     }
 
-    return res.json({ history: Object.values(grouped) });
+    return res.json({ history: Object.values(grouped) })
   } catch (err) {
-    console.error('Erro ao buscar historico:', err);
-    return res.status(500).json({ error: 'Erro ao buscar historico.' });
+    console.error('Erro ao buscar historico:', err)
+    return res.status(500).json({ error: 'Erro ao buscar historico.' })
   }
-});
+})
 
 router.get('/:stage', async (req, res) => {
-  const stage = decodeURIComponent(req.params.stage);
+  const stage = decodeURIComponent(req.params.stage)
 
   try {
     const matches = await prisma.match.findMany({
       where: stage === 'Sem fase definida' ? { stage: null } : { stage },
       orderBy: { matchDate: 'asc' },
       include: { guesses: { where: { userId: req.user.id } } },
-    });
+    })
 
     return res.json({
       stage,
@@ -101,11 +101,9 @@ router.get('/:stage', async (req, res) => {
         status: match.status,
         myGuess: match.guesses[0] || null,
       })),
-    });
+    })
   } catch (err) {
-    console.error('Erro ao buscar rodada:', err);
-    return res.status(500).json({ error: 'Erro ao buscar rodada.' });
+    console.error('Erro ao buscar rodada:', err)
+    return res.status(500).json({ error: 'Erro ao buscar rodada.' })
   }
-});
-
-module.exports = router;
+})

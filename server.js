@@ -4,14 +4,14 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 
-const authRoutes = require('./src/routes/auth')
-const matchesRoutes = require('./src/routes/matches')
-const adminRoutes = require('./src/routes/admin')
-const { router: rankingRoutes } = require('./src/routes/ranking')
-const groupsRoutes = require('./src/routes/groups')
-const usersRoutes = require('./src/routes/users')
-const championGuessRoutes = require('./src/routes/championGuess')
-const roundsRoutes = require('./src/routes/rounds')
+import authRoutes from './src/routes/auth'
+import matchesRoutes from './src/routes/matches'
+import adminRoutes from './src/routes/admin'
+import { router as rankingRoutes } from './src/routes/ranking'
+import groupsRoutes from './src/routes/groups'
+import usersRoutes from './src/routes/users'
+import championGuessRoutes from './src/routes/championGuess'
+import roundsRoutes from './src/routes/rounds'
 
 const app = express()
 const PORT = process.env.PORT || 3333
