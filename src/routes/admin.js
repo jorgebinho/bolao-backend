@@ -270,3 +270,4 @@ router.patch('/users/:id/demote', async (req, res) => {
   }
 });
 
+module.exports = router;

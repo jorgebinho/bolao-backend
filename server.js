@@ -1,8 +1,8 @@
 // server.js — Ponto de entrada do bolao-backend
-require('dotenv').config()
+import 'dotenv/config'
 
-const express = require('express')
-const cors = require('cors')
+import express from 'express'
+import cors from 'cors'
 
 import authRoutes from './src/routes/auth'
 import matchesRoutes from './src/routes/matches'
