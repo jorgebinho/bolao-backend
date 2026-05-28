@@ -1,8 +1,8 @@
 import express from 'express'
 import { prisma } from '../lib/prisma.js'
 import { authenticate } from '../middleware/auth.js'
-import { isMatchLocked, serializeMatch } from '../services/matches'
-import { getWorldCupTeams } from '../services/worldCupTeams'
+import { isMatchLocked, serializeMatch } from '../services/matches.js'
+import { getWorldCupTeams } from '../services/worldCupTeams.js'
 
 export const router = express.Router()
 
