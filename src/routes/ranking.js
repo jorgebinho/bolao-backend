@@ -1,42 +1,40 @@
-import express from 'express';
-import { prisma } from '../lib/prisma.js';
-import { authenticate } from '../middleware/auth.js';
+import express from 'express'
+import { prisma } from '../lib/prisma.js'
+import { authenticate } from '../middleware/auth.js'
+import { normalizeRankingUsers } from '../services/scoring.js'
 
-export const router = express.Router();
+export const router = express.Router()
 
-// GET /ranking — Ranking geral ordenado por pontos
+export async function buildRanking(currentUserId, userIds = null) {
+	const users = await prisma.user.findMany({
+		where: userIds ? { id: { in: userIds } } : undefined,
+		select: {
+			id: true,
+			name: true,
+			points: true,
+			_count: { select: { guesses: true } },
+			guesses: { select: { points: true } },
+			championGuess: { select: { team: true, points: true, isCorrect: true } },
+		},
+	})
+
+	return normalizeRankingUsers(users, currentUserId)
+}
+
 router.get('/', authenticate, async (req, res) => {
-  try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        points: true,
-        _count: { select: { guesses: true } },
-        guesses: {
-          select: { points: true },
-        },
-      },
-      orderBy: [
-        { points: 'desc' },
-        { name: 'asc' }, // Desempate por nome
-      ],
-    });
+	try {
+		const ranking = await buildRanking(req.user.id)
+		return res.json({
+			ranking,
+			tieBreakers: [
+				'Pontos totais',
+				'Mais placares exatos',
+				'Mais acertos parciais',
+			],
+		})
+	} catch (err) {
+		console.error('Erro ao buscar ranking:', err)
+		return res.status(500).json({ error: 'Erro ao buscar ranking.' })
+	}
+})
 
-    const ranking = users.map((user, index) => ({
-      position: index + 1,
-      id: user.id,
-      name: user.name,
-      totalPoints: user.points,
-      totalGuesses: user._count.guesses,
-      exactScores: user.guesses.filter((g) => g.points === 2).length,
-      partialScores: user.guesses.filter((g) => g.points === 1).length,
-      isCurrentUser: user.id === req.user.id,
-    }));
-
-    return res.json({ ranking });
-  } catch (err) {
-    console.error('Erro ao buscar ranking:', err);
-    return res.status(500).json({ error: 'Erro ao buscar ranking.' });
-  }
-});
