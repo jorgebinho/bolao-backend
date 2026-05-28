@@ -38,19 +38,19 @@ router.get('/', async (req, res) => {
 
 		return res.json({ ...state, guess })
 	} catch (err) {
-		console.error('Erro ao buscar palpite campeao:', err)
-		return res.status(500).json({ error: 'Erro ao buscar palpite campeao.' })
+		console.error('Erro ao buscar palpite campeão:', err)
+		return res.status(500).json({ error: 'Erro ao buscar palpite campeão.' })
 	}
 })
 
 async function saveGuess(req, res) {
 	const team = String(req.body.team || '').trim()
-	if (!team) return res.status(400).json({ error: 'Selecao campea e obrigatoria.' })
+	if (!team) return res.status(400).json({ error: 'Seleção campeã é obrigatória.' })
 
 	try {
 		const state = await getChampionState()
 		if (!state.isOpen) {
-			return res.status(400).json({ error: 'Palpite de campeao ja esta fechado.' })
+			return res.status(400).json({ error: 'Palpite de campeão já está fechado.' })
 		}
 
 		const guess = await prisma.championGuess.upsert({
@@ -61,8 +61,8 @@ async function saveGuess(req, res) {
 
 		return res.json({ guess, ...state })
 	} catch (err) {
-		console.error('Erro ao salvar palpite campeao:', err)
-		return res.status(500).json({ error: 'Erro ao salvar palpite campeao.' })
+		console.error('Erro ao salvar palpite campeão:', err)
+		return res.status(500).json({ error: 'Erro ao salvar palpite campeão.' })
 	}
 }
 

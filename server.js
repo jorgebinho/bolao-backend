@@ -1,4 +1,3 @@
-// server.js — Ponto de entrada do bolao-backend
 import 'dotenv/config'
 
 import express from 'express'
@@ -18,11 +17,10 @@ const PORT = process.env.PORT || 3333
 
 app.set('trust proxy', true)
 
-// ─── CORS ────────────────────────────────────────────────────────────────────
 const allowedOrigins = [
-	process.env.FRONTEND_URL, // Vai ler o link da Vercel do painel do Railway
+	process.env.FRONTEND_URL,
 	'http://localhost:5173',
-	'http://localhost:3000'
+	'http://localhost:3000',
 ].filter(Boolean)
 
 app.use(
@@ -32,23 +30,21 @@ app.use(
 				return callback(null, true)
 			}
 
-			console.log(`⚠️ Origem bloqueada pelo CORS do servidor: ${origin}`)
-			return callback(new Error('Not allowed by CORS'))
+			console.log(`Origem bloqueada pelo CORS do servidor: ${origin}`)
+			return callback(new Error('Não permitido pelo CORS'))
 		},
 		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
-		optionsSuccessStatus: 200
+		optionsSuccessStatus: 200,
 	})
 )
 
 app.options('*', cors())
 
-// ─── MIDDLEWARES GLOBAIS ──────────────────────────────────────────────────────
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
 	res.json({
 		status: 'ok',
@@ -57,7 +53,6 @@ app.get('/health', (req, res) => {
 	})
 })
 
-// ─── ROTAS ────────────────────────────────────────────────────────────────────
 app.use('/auth', authRoutes)
 app.use('/matches', matchesRoutes)
 app.use('/admin', adminRoutes)
@@ -67,20 +62,17 @@ app.use('/users', usersRoutes)
 app.use('/champion-guess', championGuessRoutes)
 app.use('/rounds', roundsRoutes)
 
-// ─── 404 HANDLER ─────────────────────────────────────────────────────────────
 app.use((req, res) => {
 	res.status(404).json({ error: `Rota não encontrada: ${req.method} ${req.path}` })
 })
 
-// ─── ERROR HANDLER GLOBAL ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
 	console.error('Erro não tratado:', err)
 	res.status(500).json({ error: 'Erro interno do servidor.' })
 })
 
-// ─── START SERVER ─────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-	console.log(`\n⚽ Bolão Backend rodando na porta ${PORT}`)
+	console.log(`\nBolão Backend rodando na porta ${PORT}`)
 	console.log(`   Health: http://localhost:${PORT}/health`)
 	console.log(`   Ambiente: ${process.env.NODE_ENV || 'development'}\n`)
 })

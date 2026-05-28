@@ -77,13 +77,13 @@ router.post('/', async (req, res) => {
 
 router.post('/join', async (req, res) => {
 	const code = String(req.body.code || '').trim().toUpperCase()
-	if (!code) return res.status(400).json({ error: 'Codigo do grupo e obrigatorio.' })
+	if (!code) return res.status(400).json({ error: 'Código do grupo é obrigatório.' })
 
 	try {
 		if (code === 'GLOBAL') await ensureAllUsersInGlobalGroup(prisma)
 
 		const group = await prisma.group.findUnique({ where: { code } })
-		if (!group) return res.status(404).json({ error: 'Grupo nao encontrado.' })
+		if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' })
 
 		const member = await prisma.groupMember.upsert({
 			where: { userId_groupId: { userId: req.user.id, groupId: group.id } },
@@ -92,7 +92,7 @@ router.post('/join', async (req, res) => {
 			include: { group: { include: { _count: { select: { members: true } } } } },
 		})
 
-		return res.json({ group: serializeGroupMember(member), message: 'Voce entrou no grupo.' })
+		return res.json({ group: serializeGroupMember(member), message: 'Você entrou no grupo.' })
 	} catch (err) {
 		console.error('Erro ao entrar no grupo:', err)
 		return res.status(500).json({ error: 'Erro ao entrar no grupo.' })
@@ -102,7 +102,7 @@ router.post('/join', async (req, res) => {
 router.get('/:id', async (req, res) => {
 	try {
 		const membership = await requireGroupMember(prisma, req.params.id, req.user.id)
-		if (!membership) return res.status(403).json({ error: 'Voce nao participa deste grupo.' })
+		if (!membership) return res.status(403).json({ error: 'Você não participa deste grupo.' })
 
 		const group = await prisma.group.findUnique({
 			where: { id: req.params.id },
@@ -129,7 +129,7 @@ router.get('/:id', async (req, res) => {
 router.get('/:id/ranking', async (req, res) => {
 	try {
 		const membership = await requireGroupMember(prisma, req.params.id, req.user.id)
-		if (!membership) return res.status(403).json({ error: 'Voce nao participa deste grupo.' })
+		if (!membership) return res.status(403).json({ error: 'Você não participa deste grupo.' })
 
 		const members = await prisma.groupMember.findMany({
 			where: { groupId: req.params.id },
@@ -147,7 +147,7 @@ router.get('/:id/ranking', async (req, res) => {
 router.get('/:id/members', async (req, res) => {
 	try {
 		const membership = await requireGroupMember(prisma, req.params.id, req.user.id)
-		if (!membership) return res.status(403).json({ error: 'Voce nao participa deste grupo.' })
+		if (!membership) return res.status(403).json({ error: 'Você não participa deste grupo.' })
 
 		const members = await prisma.groupMember.findMany({
 			where: { groupId: req.params.id },
@@ -189,7 +189,7 @@ router.delete('/:id/members/:userId', async (req, res) => {
 	try {
 		const membership = await requireGroupMember(prisma, req.params.id, req.user.id)
 		if (!membership || (membership.role !== 'OWNER' && req.user.role !== 'ADMIN')) {
-			return res.status(403).json({ error: 'Voce nao pode gerenciar este grupo.' })
+			return res.status(403).json({ error: 'Você não pode gerenciar este grupo.' })
 		}
 
 		const target = await prisma.groupMember.findUnique({
@@ -197,9 +197,9 @@ router.delete('/:id/members/:userId', async (req, res) => {
 			include: { group: true },
 		})
 
-		if (!target) return res.status(404).json({ error: 'Membro nao encontrado.' })
-		if (target.group.isGlobal) return res.status(400).json({ error: 'Nao e possivel remover do grupo global.' })
-		if (target.role === 'OWNER') return res.status(400).json({ error: 'Nao e possivel remover o dono do grupo.' })
+		if (!target) return res.status(404).json({ error: 'Membro não encontrado.' })
+		if (target.group.isGlobal) return res.status(400).json({ error: 'Não é possível remover do grupo global.' })
+		if (target.role === 'OWNER') return res.status(400).json({ error: 'Não é possível remover o dono do grupo.' })
 
 		await prisma.groupMember.delete({ where: { id: target.id } })
 		return res.json({ message: 'Membro removido do grupo.' })

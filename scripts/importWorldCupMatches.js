@@ -41,7 +41,7 @@ function parseKickoff(value) {
 	const date = new Date(normalized)
 
 	if (Number.isNaN(date.getTime())) {
-		throw new Error(`Data invalida no dataset: ${value}`)
+		throw new Error(`Data inválida no dataset: ${value}`)
 	}
 
 	return date
@@ -189,7 +189,7 @@ async function main() {
 		updated += 1
 	}
 
-	console.log(`Importacao concluida: ${missing.length} criado(s), ${updated} atualizado(s), ${existing.length} ja existia(m), ${matches.length} jogo(s) no dataset.`)
+	console.log(`Importação concluída: ${missing.length} criado(s), ${updated} atualizado(s), ${existing.length} já existia(m), ${matches.length} jogo(s) no dataset.`)
 }
 
 main()

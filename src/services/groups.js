@@ -18,8 +18,8 @@ export async function ensureGlobalGroup(prisma) {
     where: { code: GLOBAL_GROUP_CODE },
     update: {},
     create: {
-      name: 'Bolao Global',
-      description: 'Grupo padrao com todos os participantes.',
+      name: 'Bolão Global',
+      description: 'Grupo padrão com todos os participantes.',
       code: GLOBAL_GROUP_CODE,
       isGlobal: true,
     },

@@ -106,8 +106,8 @@ router.patch('/me', async (req, res) => {
 		})
 		return res.json({ user })
 	} catch (err) {
-		console.error('Erro ao atualizar usuario:', err)
-		return res.status(500).json({ error: 'Erro ao atualizar usuario.' })
+		console.error('Erro ao atualizar usuário:', err)
+		return res.status(500).json({ error: 'Erro ao atualizar usuário.' })
 	}
 })
 
@@ -116,7 +116,7 @@ router.patch('/me/password', async (req, res) => {
 	const newPassword = String(req.body.newPassword || '')
 
 	if (!currentPassword || newPassword.length < 6) {
-		return res.status(400).json({ error: 'Senha atual e nova senha com 6+ caracteres sao obrigatorias.' })
+		return res.status(400).json({ error: 'Senha atual e nova senha com 6+ caracteres são obrigatórias.' })
 	}
 
 	try {

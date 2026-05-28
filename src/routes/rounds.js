@@ -74,8 +74,8 @@ router.get('/me/history', async (req, res) => {
 
 		return res.json({ history: Object.values(grouped) })
 	} catch (err) {
-		console.error('Erro ao buscar historico:', err)
-		return res.status(500).json({ error: 'Erro ao buscar historico.' })
+		console.error('Erro ao buscar histórico:', err)
+		return res.status(500).json({ error: 'Erro ao buscar histórico.' })
 	}
 })
 

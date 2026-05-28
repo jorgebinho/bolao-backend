@@ -1,6 +1,6 @@
-# Bolao Backend
+# Bolão Backend
 
-API REST do bolao da Copa do Mundo 2026.
+API REST do bolão da Copa do Mundo 2026.
 
 ## Stack
 
@@ -16,12 +16,12 @@ API REST do bolao da Copa do Mundo 2026.
 - Cadastro e login com JWT
 - Jogos e palpites
 - Ranking geral e por grupo
-- Grupos de bolao
-- Perfil do usuario
-- Historico por fase
-- Palpite de campeao
-- Painel admin para jogos, usuarios e pontuacao
-- Importacao dos jogos oficiais da Copa 2026 via CSV
+- Grupos de bolão
+- Perfil do usuário
+- Histórico por fase
+- Palpite de campeão
+- Painel admin para jogos, usuários e pontuação
+- Importação dos jogos oficiais da Copa 2026 via CSV
 
 ## Instalar
 
@@ -29,7 +29,7 @@ API REST do bolao da Copa do Mundo 2026.
 npm install
 ```
 
-## Variaveis de ambiente
+## Variáveis de ambiente
 
 Crie um arquivo `.env` na raiz do backend:
 
@@ -69,11 +69,11 @@ Para importar ou atualizar os jogos:
 node scripts/importWorldCupMatches.js
 ```
 
-O script e idempotente: pode rodar mais de uma vez sem duplicar os jogos.
+O script é idempotente: pode rodar mais de uma vez sem duplicar os jogos.
 
-## Recalcular pontuacao
+## Recalcular pontuação
 
-Use quando alterar regras de pontuacao ou precisar recalcular jogos finalizados:
+Use quando alterar regras de pontuação ou precisar recalcular jogos finalizados:
 
 ```bash
 node scripts/recalculateScores.js
@@ -97,7 +97,7 @@ Health check:
 GET /health
 ```
 
-## Rodar em producao
+## Rodar em produção
 
 ```bash
 npm run start

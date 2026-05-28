@@ -45,7 +45,7 @@ async function main() {
 
 main()
   .catch((err) => {
-    console.error('Erro ao recalcular pontuacao:', err);
+    console.error('Erro ao recalcular pontuação:', err);
     process.exit(1);
   })
   .finally(async () => {

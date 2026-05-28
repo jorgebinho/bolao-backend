@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
 	const password = String(req.body.password || '')
 
 	if (!name || !email || !password) {
-		return res.status(400).json({ error: 'Nome, email e senha sao obrigatorios.' })
+		return res.status(400).json({ error: 'Nome, email e senha são obrigatórios.' })
 	}
 
 	if (password.length < 6) {
@@ -35,7 +35,7 @@ router.post('/register', async (req, res) => {
 	try {
 		const existingUser = await prisma.user.findUnique({ where: { email } })
 		if (existingUser) {
-			return res.status(409).json({ error: 'Este email ja esta cadastrado.' })
+			return res.status(409).json({ error: 'Este email já está cadastrado.' })
 		}
 
 		const hashedPassword = await bcrypt.hash(password, 10)
@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
 		return res.status(201).json({ user, token: signToken(user.id) })
 	} catch (err) {
 		console.error('Erro no registro:', err)
-		return res.status(500).json({ error: 'Erro interno ao criar usuario.' })
+		return res.status(500).json({ error: 'Erro interno ao criar usuário.' })
 	}
 })
 
@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
 	const password = String(req.body.password || '')
 
 	if (!email || !password) {
-		return res.status(400).json({ error: 'Email e senha sao obrigatorios.' })
+		return res.status(400).json({ error: 'Email e senha são obrigatórios.' })
 	}
 
 	try {

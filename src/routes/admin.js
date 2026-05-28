@@ -18,7 +18,7 @@ router.post('/matches', async (req, res) => {
 	const matchDate = req.body.matchDate ? new Date(req.body.matchDate) : null
 
 	if (!homeTeam || !awayTeam || !matchDate || Number.isNaN(matchDate.getTime())) {
-		return res.status(400).json({ error: 'Times e data do jogo sao obrigatorios.' })
+		return res.status(400).json({ error: 'Times e data do jogo são obrigatórios.' })
 	}
 
 	if (homeTeam === awayTeam) {
@@ -49,14 +49,14 @@ router.put('/matches/:id', async (req, res) => {
 
 	try {
 		const match = await prisma.match.findUnique({ where: { id } })
-		if (!match) return res.status(404).json({ error: 'Jogo nao encontrado.' })
+		if (!match) return res.status(404).json({ error: 'Jogo não encontrado.' })
 		if (match.status === 'FINISHED') {
-			return res.status(400).json({ error: 'Nao e possivel editar um jogo ja finalizado.' })
+			return res.status(400).json({ error: 'Não é possível editar um jogo já finalizado.' })
 		}
 
 		const nextDate = req.body.matchDate ? new Date(req.body.matchDate) : match.matchDate
 		if (Number.isNaN(nextDate.getTime())) {
-			return res.status(400).json({ error: 'Data do jogo invalida.' })
+			return res.status(400).json({ error: 'Data do jogo inválida.' })
 		}
 
 		const homeTeam = cleanText(req.body.homeTeam) || match.homeTeam
@@ -89,9 +89,9 @@ router.delete('/matches/:id', async (req, res) => {
 
 	try {
 		const match = await prisma.match.findUnique({ where: { id } })
-		if (!match) return res.status(404).json({ error: 'Jogo nao encontrado.' })
+		if (!match) return res.status(404).json({ error: 'Jogo não encontrado.' })
 		if (match.status !== 'UPCOMING') {
-			return res.status(400).json({ error: 'So e possivel deletar jogos que ainda nao foram bloqueados.' })
+			return res.status(400).json({ error: 'Só é possível deletar jogos que ainda não foram bloqueados.' })
 		}
 
 		await prisma.match.delete({ where: { id } })
@@ -108,7 +108,7 @@ router.post('/score-match', async (req, res) => {
 	const awayScore = Number(req.body.awayScore)
 
 	if (!matchId || !Number.isInteger(homeScore) || !Number.isInteger(awayScore) || homeScore < 0 || awayScore < 0) {
-		return res.status(400).json({ error: 'matchId, homeScore e awayScore validos sao obrigatorios.' })
+		return res.status(400).json({ error: 'matchId, homeScore e awayScore válidos são obrigatórios.' })
 	}
 
 	try {
@@ -117,9 +117,9 @@ router.post('/score-match', async (req, res) => {
 			include: { guesses: true },
 		})
 
-		if (!match) return res.status(404).json({ error: 'Jogo nao encontrado.' })
+		if (!match) return res.status(404).json({ error: 'Jogo não encontrado.' })
 		if (match.status === 'FINISHED') {
-			return res.status(400).json({ error: 'Este jogo ja foi pontuado.' })
+			return res.status(400).json({ error: 'Este jogo já foi pontuado.' })
 		}
 
 		const updates = match.guesses.map((guess) => ({
@@ -157,13 +157,13 @@ router.post('/score-match', async (req, res) => {
 		})
 	} catch (err) {
 		console.error('Erro ao pontuar jogo:', err)
-		return res.status(500).json({ error: 'Erro ao processar pontuacao.' })
+		return res.status(500).json({ error: 'Erro ao processar pontuação.' })
 	}
 })
 
 router.post('/champion-result', async (req, res) => {
 	const champion = cleanText(req.body.champion)
-	if (!champion) return res.status(400).json({ error: 'Campeao oficial e obrigatorio.' })
+	if (!champion) return res.status(400).json({ error: 'Campeão oficial é obrigatório.' })
 
 	try {
 		const result = await prisma.$transaction(async (tx) => {
@@ -185,10 +185,10 @@ router.post('/champion-result', async (req, res) => {
 			return { processed: guesses.length }
 		})
 
-		return res.json({ champion, ...result, message: 'Campeao oficial salvo.' })
+		return res.json({ champion, ...result, message: 'Campeão oficial salvo.' })
 	} catch (err) {
-		console.error('Erro ao salvar campeao:', err)
-		return res.status(500).json({ error: 'Erro ao salvar campeao oficial.' })
+		console.error('Erro ao salvar campeão:', err)
+		return res.status(500).json({ error: 'Erro ao salvar campeão oficial.' })
 	}
 })
 
@@ -210,24 +210,24 @@ router.get('/users', async (req, res) => {
 
 		return res.json({ users })
 	} catch (err) {
-		console.error('Erro ao listar usuarios:', err)
-		return res.status(500).json({ error: 'Erro ao buscar usuarios.' })
+		console.error('Erro ao listar usuários:', err)
+		return res.status(500).json({ error: 'Erro ao buscar usuários.' })
 	}
 })
 
 router.delete('/users/:id', async (req, res) => {
 	const { id } = req.params
-	if (id === req.user.id) return res.status(400).json({ error: 'Voce nao pode remover a si mesmo.' })
+	if (id === req.user.id) return res.status(400).json({ error: 'Você não pode remover a si mesmo.' })
 
 	try {
 		const user = await prisma.user.findUnique({ where: { id } })
-		if (!user) return res.status(404).json({ error: 'Usuario nao encontrado.' })
+		if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' })
 
 		await prisma.user.delete({ where: { id } })
-		return res.json({ message: `Usuario "${user.name}" removido com sucesso.` })
+		return res.json({ message: `Usuário "${user.name}" removido com sucesso.` })
 	} catch (err) {
-		console.error('Erro ao remover usuario:', err)
-		return res.status(500).json({ error: 'Erro ao remover usuario.' })
+		console.error('Erro ao remover usuário:', err)
+		return res.status(500).json({ error: 'Erro ao remover usuário.' })
 	}
 })
 
@@ -236,8 +236,8 @@ router.patch('/users/:id/promote', async (req, res) => {
 
 	try {
 		const user = await prisma.user.findUnique({ where: { id } })
-		if (!user) return res.status(404).json({ error: 'Usuario nao encontrado.' })
-		if (user.role === 'ADMIN') return res.status(400).json({ error: 'Este usuario ja e administrador.' })
+		if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' })
+		if (user.role === 'ADMIN') return res.status(400).json({ error: 'Este usuário já é administrador.' })
 
 		const updated = await prisma.user.update({
 			where: { id },
@@ -245,16 +245,16 @@ router.patch('/users/:id/promote', async (req, res) => {
 			select: { id: true, name: true, email: true, role: true },
 		})
 
-		return res.json({ user: updated, message: `${updated.name} agora e ADMIN.` })
+		return res.json({ user: updated, message: `${updated.name} agora é ADMIN.` })
 	} catch (err) {
-		console.error('Erro ao promover usuario:', err)
-		return res.status(500).json({ error: 'Erro ao promover usuario.' })
+		console.error('Erro ao promover usuário:', err)
+		return res.status(500).json({ error: 'Erro ao promover usuário.' })
 	}
 })
 
 router.patch('/users/:id/demote', async (req, res) => {
 	const { id } = req.params
-	if (id === req.user.id) return res.status(400).json({ error: 'Voce nao pode rebaixar a si mesmo.' })
+	if (id === req.user.id) return res.status(400).json({ error: 'Você não pode rebaixar a si mesmo.' })
 
 	try {
 		const updated = await prisma.user.update({
@@ -265,7 +265,7 @@ router.patch('/users/:id/demote', async (req, res) => {
 
 		return res.json({ user: updated })
 	} catch (err) {
-		console.error('Erro ao rebaixar usuario:', err)
-		return res.status(500).json({ error: 'Erro ao rebaixar usuario.' })
+		console.error('Erro ao rebaixar usuário:', err)
+		return res.status(500).json({ error: 'Erro ao rebaixar usuário.' })
 	}
 })

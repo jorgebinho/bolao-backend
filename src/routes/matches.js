@@ -55,8 +55,8 @@ router.get('/teams', authenticate, async (req, res) => {
   try {
     return res.json({ teams: getWorldCupTeams() })
   } catch (err) {
-    console.error('Erro ao listar selecoes:', err)
-    return res.status(500).json({ error: 'Erro ao buscar selecoes.' })
+    console.error('Erro ao listar seleções:', err)
+    return res.status(500).json({ error: 'Erro ao buscar seleções.' })
   }
 })
 
@@ -66,23 +66,23 @@ router.post('/:id/guess', authenticate, async (req, res) => {
   const awayGuess = Number(req.body.awayGuess)
 
   if (!Number.isInteger(homeGuess) || !Number.isInteger(awayGuess) || homeGuess < 0 || awayGuess < 0) {
-    return res.status(400).json({ error: 'Os palpites devem ser numeros inteiros nao negativos.' })
+    return res.status(400).json({ error: 'Os palpites devem ser números inteiros não negativos.' })
   }
 
   try {
     const match = await prisma.match.findUnique({ where: { id: matchId } })
 
     if (!match) {
-      return res.status(404).json({ error: 'Jogo nao encontrado.' })
+      return res.status(404).json({ error: 'Jogo não encontrado.' })
     }
 
     if (match.status === 'FINISHED') {
-      return res.status(400).json({ error: 'Este jogo ja foi finalizado.' })
+      return res.status(400).json({ error: 'Este jogo já foi finalizado.' })
     }
 
     if (isMatchLocked(match.matchDate) || match.status === 'LOCKED') {
       return res.status(400).json({
-        error: 'As apostas para este jogo ja estao encerradas.',
+        error: 'As apostas para este jogo já estão encerradas.',
       })
     }
 
