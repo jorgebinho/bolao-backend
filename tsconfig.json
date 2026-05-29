@@ -25,9 +25,16 @@
 		"types": [
 			"node"
 		],
+		"baseUrl": ".",
 		"paths": {
 			"@/*": [
-				"./src/*"
+				"src/*"
+			],
+			"@PrismaGen/*": [
+				"prisma/generated/*"
+			],
+			"@Shared/*": [
+				"src/shared/*"
 			]
 		}
 	}
