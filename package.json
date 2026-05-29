@@ -2,7 +2,7 @@
 	"name": "bolao-backend",
 	"version": "1.0.0",
 	"description": "API REST do Bolão Copa do Mundo",
-	"main": "server.js",
+	"main": "dist/server.mjs",
 	"type": "module",
 	"scripts": {
 		"dev": "tsdown --watch src",
@@ -25,6 +25,10 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.16",
+		"@types/bcryptjs": "^2.4.6",
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^25.9.1",
 		"nodemon": "^3.1.7",
 		"prisma": "^5.22.0",

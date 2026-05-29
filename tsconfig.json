@@ -10,7 +10,7 @@
 			"ESNext.Promise"
 		],
 		"module": "nodenext",
-		"target": "es2025",
+		"target": "es2024",
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"moduleResolution": "nodenext",
@@ -20,28 +20,15 @@
 		"strictPropertyInitialization": false,
 		"strictBindCallApply": false,
 		"noFallthroughCasesInSwitch": false,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
 		"types": [
 			"node"
 		],
 		"paths": {
 			"@/*": [
 				"./src/*"
-			],
-			"@Config/*": [
-				"./src/config/*"
-			],
-			"@Lib/*": [
-				"./src/lib/*"
-			],
-			"@Middlwares/*": [
-				"./src/middleware/*"
-			],
-			"@Routes/*": [
-				"./src/routes/*"
-			],
-			"@Services/*": [
-				"./src/services/*"
-			],
+			]
 		}
 	}
 }
