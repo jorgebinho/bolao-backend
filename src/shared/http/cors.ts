@@ -17,9 +17,7 @@ export function createCorsOptions(): CorsOptions {
 			console.log(`Origem bloqueada pelo CORS do servidor: ${origin}`);
 			return callback(new Error('Não permitido pelo CORS'));
 		},
-		credentials: true,
 		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
-		optionsSuccessStatus: 200,
 	};
 }
