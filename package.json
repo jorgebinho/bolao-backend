@@ -6,7 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "tsx watch ./src/server.ts",
-		"build": "tsdown",
+		"build": "prisma generate && tsdown",
 		"start:prod": "node dist/server.mjs",
 		"check": "biome check --write",
 		"db:migrate": "prisma migrate dev",
