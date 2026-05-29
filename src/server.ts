@@ -1,32 +1,26 @@
 import cors from 'cors';
 import express from 'express';
 import { adminRouter } from './modules/admin/http/admin.routes.js';
-import { env } from './shared/config/env.js';
 import { authRouter } from './modules/auth/http/auth.routes.js';
-import { groupsRouter } from './modules/groups/http/groups.routes.js';
-import { createCorsOptions } from './shared/http/cors.js';
-import {
-	internalErrorHandler,
-	notFoundHandler,
-} from './shared/http/errors.js';
 import { championGuessRouter } from './modules/champion-guess/http/champion-guess.routes.js';
+import { groupsRouter } from './modules/groups/http/groups.routes.js';
 import { matchesRouter } from './modules/matches/http/matches.routes.js';
 import { rankingRouter } from './modules/ranking/http/ranking.routes.js';
 import { roundsRouter } from './modules/rounds/http/rounds.routes.js';
 import { usersRouter } from './modules/users/http/users.routes.js';
+import { env } from './shared/config/env.js';
+import { createCorsOptions } from './shared/http/cors.js';
+import { internalErrorHandler, notFoundHandler } from './shared/http/errors.js';
 
 const app = express();
 const corsOptions = createCorsOptions();
 
-app.set('trust proxy', true);
-
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/health', (_req, res) => {
+app.get('/health', (_, res) => {
 	res.json({
 		status: 'ok',
 		service: 'bolao-backend',

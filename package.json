@@ -5,7 +5,7 @@
 	"main": "dist/server.mjs",
 	"type": "module",
 	"scripts": {
-		"dev": "tsdown --watch src",
+		"dev": "tsx watch ./src/server.ts",
 		"build": "tsdown",
 		"start:prod": "node dist/server.mjs",
 		"check": "biome check --write",
@@ -15,24 +15,24 @@
 		"db:generate": "prisma generate"
 	},
 	"dependencies": {
-		"@prisma/client": "^5.22.0",
-		"bcryptjs": "^2.4.3",
-		"cors": "^2.8.5",
-		"dotenv": "^16.4.5",
-		"express": "^4.21.1",
-		"jsonwebtoken": "^9.0.2",
+		"@prisma/client": "^7.8.0",
+		"bcryptjs": "^3.0.3",
+		"cors": "^2.8.6",
+		"dotenv": "^17.4.2",
+		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.16",
-		"@types/bcryptjs": "^2.4.6",
+		"@types/bcryptjs": "^3.0.0",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^25.9.1",
-		"nodemon": "^3.1.7",
-		"prisma": "^5.22.0",
+		"prisma": "^7.8.0",
 		"tsdown": "^0.22.1",
+		"tsx": "^4.22.3",
 		"typescript": "^6.0.3"
 	}
 }
