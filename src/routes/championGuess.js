@@ -1,71 +1,78 @@
-import express from 'express'
-import { prisma } from '../lib/prisma.js'
-import { authenticate } from '../middleware/auth.js'
+import express from "express";
+import { prisma } from "../lib/prisma.js";
+import { authenticate } from "../middleware/auth.js";
 
-export const router = express.Router()
+export const router = express.Router();
 
 async function getChampionState() {
 	const [configs, firstMatch] = await Promise.all([
 		prisma.appConfig.findMany({
-			where: { key: { in: ['champion_deadline', 'champion_result'] } },
+			where: { key: { in: ["champion_deadline", "champion_result"] } },
 		}),
 		prisma.match.findFirst({
-			orderBy: { matchDate: 'asc' },
+			orderBy: { matchDate: "asc" },
 			select: { matchDate: true },
 		}),
-	])
-	const map = Object.fromEntries(configs.map((config) => [config.key, config.value]))
+	]);
+	const map = Object.fromEntries(
+		configs.map((config) => [config.key, config.value]),
+	);
 	const deadline =
 		map.champion_deadline ||
 		process.env.CHAMPION_GUESS_DEADLINE ||
-		firstMatch?.matchDate?.toISOString()
+		firstMatch?.matchDate?.toISOString();
 
 	return {
 		deadline,
-		isOpen: Boolean(deadline) && new Date() < new Date(deadline) && !map.champion_result,
+		isOpen:
+			Boolean(deadline) &&
+			new Date() < new Date(deadline) &&
+			!map.champion_result,
 		officialChampion: map.champion_result || null,
-	}
+	};
 }
 
-router.use(authenticate)
+router.use(authenticate);
 
-router.get('/', async (req, res) => {
+router.get("/", async (req, res) => {
 	try {
 		const [state, guess] = await Promise.all([
 			getChampionState(),
 			prisma.championGuess.findUnique({ where: { userId: req.user.id } }),
-		])
+		]);
 
-		return res.json({ ...state, guess })
+		return res.json({ ...state, guess });
 	} catch (err) {
-		console.error('Erro ao buscar palpite campeão:', err)
-		return res.status(500).json({ error: 'Erro ao buscar palpite campeão.' })
+		console.error("Erro ao buscar palpite campeão:", err);
+		return res.status(500).json({ error: "Erro ao buscar palpite campeão." });
 	}
-})
+});
 
 async function saveGuess(req, res) {
-	const team = String(req.body.team || '').trim()
-	if (!team) return res.status(400).json({ error: 'Seleção campeã é obrigatória.' })
+	const team = String(req.body.team || "").trim();
+	if (!team)
+		return res.status(400).json({ error: "Seleção campeã é obrigatória." });
 
 	try {
-		const state = await getChampionState()
+		const state = await getChampionState();
 		if (!state.isOpen) {
-			return res.status(400).json({ error: 'Palpite de campeão já está fechado.' })
+			return res
+				.status(400)
+				.json({ error: "Palpite de campeão já está fechado." });
 		}
 
 		const guess = await prisma.championGuess.upsert({
 			where: { userId: req.user.id },
 			update: { team, points: 0, isCorrect: false },
 			create: { userId: req.user.id, team },
-		})
+		});
 
-		return res.json({ guess, ...state })
+		return res.json({ guess, ...state });
 	} catch (err) {
-		console.error('Erro ao salvar palpite campeão:', err)
-		return res.status(500).json({ error: 'Erro ao salvar palpite campeão.' })
+		console.error("Erro ao salvar palpite campeão:", err);
+		return res.status(500).json({ error: "Erro ao salvar palpite campeão." });
 	}
 }
 
-router.post('/', saveGuess)
-router.put('/', saveGuess);
-
+router.post("/", saveGuess);
+router.put("/", saveGuess);

@@ -5,8 +5,9 @@
 	"main": "server.js",
 	"type": "module",
 	"scripts": {
-		"dev": "nodemon server.js",
-		"start": "node server.js",
+		"dev": "tsdown --watch src",
+		"build": "tsdown",
+		"start:prod": "node dist/server.mjs",
 		"check": "biome check --write",
 		"db:migrate": "prisma migrate dev",
 		"db:push": "prisma db push",
@@ -19,11 +20,15 @@
 		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
 		"express": "^4.21.1",
-		"jsonwebtoken": "^9.0.2"
+		"jsonwebtoken": "^9.0.2",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.16",
+		"@types/node": "^25.9.1",
 		"nodemon": "^3.1.7",
-		"prisma": "^5.22.0"
+		"prisma": "^5.22.0",
+		"tsdown": "^0.22.1",
+		"typescript": "^6.0.3"
 	}
 }

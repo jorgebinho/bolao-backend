@@ -1,9 +1,9 @@
-import express from 'express'
-import { prisma } from '../lib/prisma.js'
-import { authenticate } from '../middleware/auth.js'
-import { normalizeRankingUsers } from '../services/scoring.js'
+import express from "express";
+import { prisma } from "../lib/prisma.js";
+import { authenticate } from "../middleware/auth.js";
+import { normalizeRankingUsers } from "../services/scoring.js";
 
-export const router = express.Router()
+export const router = express.Router();
 
 export async function buildRanking(currentUserId, userIds = null) {
 	const users = await prisma.user.findMany({
@@ -16,25 +16,24 @@ export async function buildRanking(currentUserId, userIds = null) {
 			guesses: { select: { points: true } },
 			championGuess: { select: { team: true, points: true, isCorrect: true } },
 		},
-	})
+	});
 
-	return normalizeRankingUsers(users, currentUserId)
+	return normalizeRankingUsers(users, currentUserId);
 }
 
-router.get('/', authenticate, async (req, res) => {
+router.get("/", authenticate, async (req, res) => {
 	try {
-		const ranking = await buildRanking(req.user.id)
+		const ranking = await buildRanking(req.user.id);
 		return res.json({
 			ranking,
 			tieBreakers: [
-				'Pontos totais',
-				'Mais placares exatos',
-				'Mais acertos parciais',
+				"Pontos totais",
+				"Mais placares exatos",
+				"Mais acertos parciais",
 			],
-		})
+		});
 	} catch (err) {
-		console.error('Erro ao buscar ranking:', err)
-		return res.status(500).json({ error: 'Erro ao buscar ranking.' })
+		console.error("Erro ao buscar ranking:", err);
+		return res.status(500).json({ error: "Erro ao buscar ranking." });
 	}
-})
-
+});

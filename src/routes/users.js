@@ -1,24 +1,27 @@
-import express from 'express'
-import bcrypt from 'bcryptjs'
-import { prisma } from '../lib/prisma.js'
-import { authenticate } from '../middleware/auth.js'
-import { buildRanking } from './ranking.js'
+import bcrypt from "bcryptjs";
+import express from "express";
+import { prisma } from "../lib/prisma.js";
+import { authenticate } from "../middleware/auth.js";
+import { buildRanking } from "./ranking.js";
 
-export const router = express.Router()
+export const router = express.Router();
 
-router.use(authenticate)
+router.use(authenticate);
 
 async function getGroupPosition(userId, groupId) {
-	if (!groupId) return null
+	if (!groupId) return null;
 	const members = await prisma.groupMember.findMany({
 		where: { groupId },
 		select: { userId: true },
-	})
-	const ranking = await buildRanking(userId, members.map((member) => member.userId))
-	return ranking.find((entry) => entry.id === userId)?.position || null
+	});
+	const ranking = await buildRanking(
+		userId,
+		members.map((member) => member.userId),
+	);
+	return ranking.find((entry) => entry.id === userId)?.position || null;
 }
 
-router.get('/me/profile', async (req, res) => {
+router.get("/me/profile", async (req, res) => {
 	try {
 		const [user, ranking, recentGuesses] = await Promise.all([
 			prisma.user.findUnique({
@@ -29,7 +32,9 @@ router.get('/me/profile', async (req, res) => {
 					email: true,
 					role: true,
 					points: true,
-					championGuess: { select: { team: true, points: true, isCorrect: true } },
+					championGuess: {
+						select: { team: true, points: true, isCorrect: true },
+					},
 					_count: { select: { guesses: true, groupMemberships: true } },
 					guesses: { select: { points: true } },
 				},
@@ -37,7 +42,7 @@ router.get('/me/profile', async (req, res) => {
 			buildRanking(req.user.id),
 			prisma.guess.findMany({
 				where: { userId: req.user.id },
-				orderBy: { updatedAt: 'desc' },
+				orderBy: { updatedAt: "desc" },
 				take: 8,
 				include: {
 					match: {
@@ -54,10 +59,13 @@ router.get('/me/profile', async (req, res) => {
 					},
 				},
 			}),
-		])
+		]);
 
-		const rankEntry = ranking.find((entry) => entry.id === req.user.id)
-		const groupPosition = await getGroupPosition(req.user.id, req.query.groupId)
+		const rankEntry = ranking.find((entry) => entry.id === req.user.id);
+		const groupPosition = await getGroupPosition(
+			req.user.id,
+			req.query.groupId,
+		);
 
 		return res.json({
 			profile: {
@@ -70,10 +78,15 @@ router.get('/me/profile', async (req, res) => {
 				championPoints: user.championGuess?.points || 0,
 				totalGuesses: user._count.guesses,
 				exactScores: user.guesses.filter((guess) => guess.points === 3).length,
-				partialScores: user.guesses.filter((guess) => guess.points === 1).length,
+				partialScores: user.guesses.filter((guess) => guess.points === 1)
+					.length,
 				errors: user.guesses.filter((guess) => guess.points === 0).length,
 				hitRate: user._count.guesses
-					? Math.round(((user.guesses.filter((guess) => guess.points > 0).length / user._count.guesses) * 100))
+					? Math.round(
+							(user.guesses.filter((guess) => guess.points > 0).length /
+								user._count.guesses) *
+								100,
+						)
 					: 0,
 				generalPosition: rankEntry?.position || null,
 				groupPosition,
@@ -87,52 +100,57 @@ router.get('/me/profile', async (req, res) => {
 					match: guess.match,
 				})),
 			},
-		})
+		});
 	} catch (err) {
-		console.error('Erro ao buscar perfil:', err)
-		return res.status(500).json({ error: 'Erro ao buscar perfil.' })
+		console.error("Erro ao buscar perfil:", err);
+		return res.status(500).json({ error: "Erro ao buscar perfil." });
 	}
-})
+});
 
-router.patch('/me', async (req, res) => {
-	const name = String(req.body.name || '').trim()
-	if (name.length < 2) return res.status(400).json({ error: 'Nome deve ter pelo menos 2 caracteres.' })
+router.patch("/me", async (req, res) => {
+	const name = String(req.body.name || "").trim();
+	if (name.length < 2)
+		return res
+			.status(400)
+			.json({ error: "Nome deve ter pelo menos 2 caracteres." });
 
 	try {
 		const user = await prisma.user.update({
 			where: { id: req.user.id },
 			data: { name },
 			select: { id: true, name: true, email: true, role: true, points: true },
-		})
-		return res.json({ user })
+		});
+		return res.json({ user });
 	} catch (err) {
-		console.error('Erro ao atualizar usuário:', err)
-		return res.status(500).json({ error: 'Erro ao atualizar usuário.' })
+		console.error("Erro ao atualizar usuário:", err);
+		return res.status(500).json({ error: "Erro ao atualizar usuário." });
 	}
-})
+});
 
-router.patch('/me/password', async (req, res) => {
-	const currentPassword = String(req.body.currentPassword || '')
-	const newPassword = String(req.body.newPassword || '')
+router.patch("/me/password", async (req, res) => {
+	const currentPassword = String(req.body.currentPassword || "");
+	const newPassword = String(req.body.newPassword || "");
 
 	if (!currentPassword || newPassword.length < 6) {
-		return res.status(400).json({ error: 'Senha atual e nova senha com 6+ caracteres são obrigatórias.' })
+		return res.status(400).json({
+			error: "Senha atual e nova senha com 6+ caracteres são obrigatórias.",
+		});
 	}
 
 	try {
-		const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+		const user = await prisma.user.findUnique({ where: { id: req.user.id } });
 		if (!(await bcrypt.compare(currentPassword, user.password))) {
-			return res.status(400).json({ error: 'Senha atual incorreta.' })
+			return res.status(400).json({ error: "Senha atual incorreta." });
 		}
 
 		await prisma.user.update({
 			where: { id: req.user.id },
 			data: { password: await bcrypt.hash(newPassword, 10) },
-		})
+		});
 
-		return res.json({ message: 'Senha alterada com sucesso.' })
+		return res.json({ message: "Senha alterada com sucesso." });
 	} catch (err) {
-		console.error('Erro ao alterar senha:', err)
-		return res.status(500).json({ error: 'Erro ao alterar senha.' })
+		console.error("Erro ao alterar senha:", err);
+		return res.status(500).json({ error: "Erro ao alterar senha." });
 	}
-})
+});
