@@ -2,6 +2,7 @@ import 'dotenv/config'
 
 import express from 'express'
 import cors from 'cors'
+import { createRequire } from 'node:module'
 
 import { router as authRoutes } from './src/routes/auth.js'
 import { router as matchesRoutes } from './src/routes/matches.js'
@@ -14,6 +15,8 @@ import { router as roundsRoutes } from './src/routes/rounds.js'
 
 const app = express()
 const PORT = process.env.PORT || 3333
+const require = createRequire(import.meta.url)
+const { version } = require('./package.json')
 
 app.set('trust proxy', true)
 
@@ -49,6 +52,7 @@ app.get('/health', (req, res) => {
 	res.json({
 		status: 'ok',
 		service: 'bolao-backend',
+		version,
 		timestamp: new Date().toISOString(),
 	})
 })
