@@ -10,6 +10,7 @@ API REST do bolão da Copa do Mundo 2026.
 - PostgreSQL/Supabase
 - JWT
 - bcrypt
+- TypeScript
 
 ## Funcionalidades
 
@@ -35,7 +36,6 @@ Crie um arquivo `.env` na raiz do backend:
 
 ```env
 DATABASE_URL="postgresql://..."
-DIRECT_URL="postgresql://..."
 
 JWT_SECRET="gere-uma-chave-secreta-grande"
 JWT_EXPIRES_IN="7d"
@@ -46,13 +46,16 @@ PORT=3333
 
 ## Banco de dados
 
-O projeto usa PostgreSQL. Recomendado usar Supabase.
+O projeto usa PostgreSQL. O Supabase pode ser utilizado mas também é possível usar a imagem Docker do PostgreSQL padrão, para isso:
 
-Depois de configurar `DATABASE_URL` e `DIRECT_URL`, rode:
+1. Execute `docker login dhi.io` e logue com sua conta da Docker
+2. Execute `docker compose up -d`
+
+Depois de configurar `DATABASE_URL`, rode:
 
 ```bash
-npx prisma generate
-npx prisma db push
+npm run db:generate
+npm run db:migrate
 ```
 
 ## Importar jogos da Copa

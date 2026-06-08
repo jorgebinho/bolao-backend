@@ -1,0 +1,36 @@
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#4f46e5', 'primaryTextColor': '#ffffff',
+  'primaryBorderColor': '#3730a3', 'lineColor': '#94a3b8',
+  'secondaryColor': '#10b981', 'tertiaryColor': '#f59e0b',
+  'background': '#ffffff', 'mainBkg': '#f8fafc',
+  'nodeBorder': '#cbd5e1', 'clusterBkg': '#f1f5f9',
+  'clusterBorder': '#e2e8f0', 'titleColor': '#1e293b',
+  'edgeLabelBackground': '#ffffff', 'textColor': '#334155'
+}}}%%
+flowchart LR
+    client[Frontend client]
+
+    subgraph api[Express API process]
+        server[server.ts]
+        middleware[Auth and HTTP middleware]
+        modules[Feature modules]
+    end
+
+    subgraph shared[Shared infrastructure]
+        sharedCode[Env, JWT, CORS, errors, scoring]
+        prismaClient[Prisma client]
+    end
+
+    postgres[(PostgreSQL)]
+    csv[World Cup CSV data]
+    scripts[Maintenance scripts]
+
+    client -->|"HTTPS/JSON"| server
+    server --> middleware
+    middleware --> modules
+    modules --> sharedCode
+    modules --> csv
+    modules --> prismaClient
+    prismaClient --> postgres
+    scripts --> postgres
+    scripts --> csv

@@ -1,0 +1,41 @@
+{
+	"$schema": "https://www.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"lib": [
+			"es2024",
+			"ESNext.Array",
+			"ESNext.Collection",
+			"ESNext.Error",
+			"ESNext.Iterator",
+			"ESNext.Promise"
+		],
+		"module": "nodenext",
+		"target": "es2024",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"moduleResolution": "nodenext",
+		"strict": true,
+		"alwaysStrict": true,
+		"strictNullChecks": true,
+		"strictPropertyInitialization": false,
+		"strictBindCallApply": false,
+		"noFallthroughCasesInSwitch": false,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"types": [
+			"node"
+		],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": [
+				"src/*"
+			],
+			"@PrismaGen/*": [
+				"prisma/generated/*"
+			],
+			"@Shared/*": [
+				"src/shared/*"
+			]
+		}
+	}
+}
