@@ -82,6 +82,29 @@ Use quando alterar regras de pontuação ou precisar recalcular jogos finalizado
 node scripts/recalculateScores.js
 ```
 
+## Enviar lembretes por e-mail
+
+O backend inicia um scheduler interno quando `MATCH_REMINDERS_ENABLED=true`, mas
+tambem existe um comando avulso para ambientes que podem dormir ou para cron
+externo:
+
+```bash
+npm run reminders:send
+```
+
+Esse comando roda uma vez, procura jogos abertos que comecam em ate 2 horas e
+envia e-mail apenas para usuarios que ainda nao palpitaram. Depois registra o
+envio em `match_reminder_emails`, evitando duplicidade para o mesmo usuario e
+jogo.
+
+Exemplo para simular outra data/hora:
+
+```bash
+npm run reminders:send -- --now=2026-06-11T17:15:00.000Z
+```
+
+Em producao, agende esse comando em um cron externo a cada 5 ou 10 minutos.
+
 ## Rodar em desenvolvimento
 
 ```bash

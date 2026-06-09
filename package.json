@@ -14,7 +14,8 @@
 		"db:studio": "prisma studio",
 		"db:generate": "prisma generate",
 		"db:seed:matches": "tsx scripts/importWorldCupMatches.js",
-		"recalculate-scores": "tsx scripts/recalculateScores.js"
+		"recalculate-scores": "tsx scripts/recalculateScores.js",
+		"reminders:send": "tsx scripts/sendMatchReminders.js"
 	},
 	"dependencies": {
 		"@prisma/adapter-pg": "^7.8.0",
