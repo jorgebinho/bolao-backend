@@ -14,6 +14,57 @@ const teamsPtBrPath =
 	process.env.WORLDCUP_TEAMS_PT_BR_PATH ||
 	path.join(worldCupDataDir, 'teams_pt_br_updated.csv');
 
+const FIFA_TO_ISO_COUNTRY_CODE: Record<string, string> = {
+	ALG: 'DZ',
+	ARG: 'AR',
+	AUS: 'AU',
+	AUT: 'AT',
+	BEL: 'BE',
+	BIH: 'BA',
+	BRA: 'BR',
+	CAN: 'CA',
+	CIV: 'CI',
+	COD: 'CD',
+	COL: 'CO',
+	CPV: 'CV',
+	CRO: 'HR',
+	CUR: 'CW',
+	CZE: 'CZ',
+	ECU: 'EC',
+	EGY: 'EG',
+	ENG: 'GB',
+	ESP: 'ES',
+	FRA: 'FR',
+	GER: 'DE',
+	GHA: 'GH',
+	HAI: 'HT',
+	IRN: 'IR',
+	IRQ: 'IQ',
+	JOR: 'JO',
+	JPN: 'JP',
+	KOR: 'KR',
+	KSA: 'SA',
+	MAR: 'MA',
+	MEX: 'MX',
+	NED: 'NL',
+	NOR: 'NO',
+	NZL: 'NZ',
+	PAN: 'PA',
+	PAR: 'PY',
+	POR: 'PT',
+	QAT: 'QA',
+	RSA: 'ZA',
+	SCO: 'GB',
+	SEN: 'SN',
+	SUI: 'CH',
+	SWE: 'SE',
+	TUN: 'TN',
+	TUR: 'TR',
+	URU: 'UY',
+	USA: 'US',
+	UZB: 'UZ',
+};
+
 interface SerializedGuess {
 	id: string;
 	userId: string;
@@ -66,6 +117,8 @@ export class MatchesServiceError extends Error {
 }
 
 export class MatchesService {
+	private teamFlagsByName: Map<string, string> | null = null;
+
 	constructor(private readonly matchesRepository: MatchesRepository) {}
 
 	async listMatchesForUser(user: AuthenticatedUser): Promise<SerializedMatch[]> {
@@ -194,8 +247,12 @@ export class MatchesService {
 			id: match.id,
 			homeTeam: match.homeTeam,
 			awayTeam: match.awayTeam,
-			homeFlag: match.homeFlag,
-			awayFlag: match.awayFlag,
+			homeFlag:
+				this.normalizeFlagValue(match.homeFlag) ||
+				this.findTeamFlag(match.homeTeam),
+			awayFlag:
+				this.normalizeFlagValue(match.awayFlag) ||
+				this.findTeamFlag(match.awayTeam),
 			matchDate: match.matchDate,
 			stage: match.stage,
 			status: currentStatus,
@@ -231,5 +288,58 @@ export class MatchesService {
 				headers.map((header, index) => [header, values[index] ?? '']),
 			);
 		});
+	}
+
+	private findTeamFlag(teamName: string): string | null {
+		if (!this.teamFlagsByName) {
+			this.teamFlagsByName = this.buildTeamFlagsByName();
+		}
+
+		return this.teamFlagsByName.get(this.normalizeTeamName(teamName)) || null;
+	}
+
+	private normalizeFlagValue(flag: string | null): string | null {
+		const value = flag?.trim();
+		if (!value) return null;
+
+		if (/^[a-z]{2}$/i.test(value)) {
+			return this.countryCodeToFlagUrl(value);
+		}
+
+		const isoCountryCode = FIFA_TO_ISO_COUNTRY_CODE[value.toUpperCase()];
+		if (isoCountryCode) {
+			return this.countryCodeToFlagUrl(isoCountryCode);
+		}
+
+		return value;
+	}
+
+	private buildTeamFlagsByName(): Map<string, string> {
+		const flags = new Map<string, string>();
+
+		for (const team of this.listTeams()) {
+			const isoCountryCode = FIFA_TO_ISO_COUNTRY_CODE[team.fifaCode];
+			if (!isoCountryCode) continue;
+
+			flags.set(
+				this.normalizeTeamName(team.name),
+				this.countryCodeToFlagUrl(isoCountryCode),
+			);
+		}
+
+		return flags;
+	}
+
+	private normalizeTeamName(teamName: string): string {
+		return teamName
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, ' ')
+			.trim();
+	}
+
+	private countryCodeToFlagUrl(countryCode: string): string {
+		return `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`;
 	}
 }
