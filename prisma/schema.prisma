@@ -32,6 +32,7 @@ model User {
   role             Role           @default(USER)
   points           Int            @default(0)
   guesses          Guess[]
+  matchReminders   MatchReminderEmail[]
   groupMemberships GroupMember[]
   ownedGroups      Group[]        @relation("GroupOwner")
   championGuess    ChampionGuess?
@@ -53,6 +54,7 @@ model Match {
   homeScore Int?
   awayScore Int?
   guesses   Guess[]
+  reminders MatchReminderEmail[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
@@ -127,4 +129,17 @@ model AppConfig {
   updatedAt DateTime @updatedAt
 
   @@map("app_config")
+}
+
+model MatchReminderEmail {
+  id      String   @id @default(cuid())
+  userId  String
+  matchId String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match   Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sentAt  DateTime @default(now())
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@map("match_reminder_emails")
 }
