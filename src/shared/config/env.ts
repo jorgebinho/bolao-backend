@@ -31,6 +31,7 @@ if (!envResult.success) {
 	console.error(
 		'[Bolão API] Error when parsing process.env: Check the environment variables and try again',
 	);
+	console.error('[Bolão API] Validation errors:', JSON.stringify(envResult.error.format(), null, 2));
 
 	process.exit(1);
 }
