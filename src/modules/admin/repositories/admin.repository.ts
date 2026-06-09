@@ -182,4 +182,12 @@ export class AdminRepository {
 			select: promotedUserSelect,
 		});
 	}
+
+	updateUserPassword(id: string, hashedPassword: string) {
+		return prisma.user.update({
+			where: { id },
+			data: { password: hashedPassword },
+			select: promotedUserSelect,
+		});
+	}
 }

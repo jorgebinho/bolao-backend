@@ -38,3 +38,6 @@ adminRouter.patch('/users/:id/promote', (req, res) =>
 adminRouter.patch('/users/:id/demote', (req, res) =>
 	adminController.demoteUser(req, res),
 );
+adminRouter.patch('/users/:id/password', (req, res) =>
+	adminController.resetUserPassword(req, res),
+);

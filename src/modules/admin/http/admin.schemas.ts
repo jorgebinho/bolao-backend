@@ -15,6 +15,10 @@ export interface ScoreMatchInput {
 	awayScore: number;
 }
 
+export interface ResetUserPasswordInput {
+	password: string;
+}
+
 export function asRecord(value: unknown): InputRecord {
 	return value && typeof value === 'object' ? (value as InputRecord) : {};
 }
@@ -74,4 +78,11 @@ export function parseChampionResultInput(
 ): { champion: string } | null {
 	const champion = cleanText(asRecord(body).champion);
 	return champion ? { champion } : null;
+}
+
+export function parseResetUserPasswordInput(
+	body: unknown,
+): ResetUserPasswordInput | null {
+	const password = cleanText(asRecord(body).password);
+	return password ? { password } : null;
 }
