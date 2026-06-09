@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import {
 	CHAMPION_BONUS_POINTS,
 	calculateMatchPoints,
@@ -200,5 +201,28 @@ export class AdminService {
 
 		const user = await this.adminRepository.demoteUser(userId);
 		return { user };
+	}
+
+	async resetUserPassword(userId: string, password: string) {
+		if (password.length < 6) {
+			throw new AdminServiceError(400, 'A nova senha deve ter pelo menos 6 caracteres.');
+		}
+
+		const user = await this.adminRepository.findUserById(userId);
+
+		if (!user) {
+			throw new AdminServiceError(404, 'Usuário não encontrado.');
+		}
+
+		const hashedPassword = await bcrypt.hash(password, 10);
+		const updated = await this.adminRepository.updateUserPassword(
+			userId,
+			hashedPassword,
+		);
+
+		return {
+			user: updated,
+			message: `Senha de "${updated.name}" redefinida com sucesso.`,
+		};
 	}
 }

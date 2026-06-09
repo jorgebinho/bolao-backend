@@ -6,6 +6,7 @@ import {
 	cleanText,
 	parseChampionResultInput,
 	parseCreateMatchInput,
+	parseResetUserPasswordInput,
 	parseScoreMatchInput,
 } from './admin.schemas.js';
 
@@ -185,6 +186,29 @@ export class AdminController {
 				res,
 				'Erro ao rebaixar usuário:',
 				'Erro ao rebaixar usuário.',
+			);
+		}
+	}
+
+	async resetUserPassword(req: Request, res: Response): Promise<Response> {
+		const input = parseResetUserPasswordInput(req.body);
+
+		if (!input) {
+			return res.status(400).json({ error: 'Nova senha é obrigatória.' });
+		}
+
+		try {
+			const result = await this.adminService.resetUserPassword(
+				this.getRouteParam(req, 'id'),
+				input.password,
+			);
+			return res.json(result);
+		} catch (error) {
+			return this.handleError(
+				error,
+				res,
+				'Erro ao redefinir senha:',
+				'Erro ao redefinir senha do usuário.',
 			);
 		}
 	}
