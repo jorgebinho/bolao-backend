@@ -5,6 +5,7 @@ import { adminRouter } from './modules/admin/http/admin.routes.js';
 import { authRouter } from './modules/auth/http/auth.routes.js';
 import { championGuessRouter } from './modules/champion-guess/http/champion-guess.routes.js';
 import { groupsRouter } from './modules/groups/http/groups.routes.js';
+import { startMatchRemindersScheduler } from './modules/match-reminders/match-reminders.scheduler.js';
 import { matchesRouter } from './modules/matches/http/matches.routes.js';
 import { rankingRouter } from './modules/ranking/http/ranking.routes.js';
 import { roundsRouter } from './modules/rounds/http/rounds.routes.js';
@@ -48,4 +49,5 @@ app.listen(env.PORT, '0.0.0.0', () => {
 	console.log(`\nBolão Backend rodando na porta ${env.PORT}`);
 	console.log(`   Health: http://localhost:${env.PORT}/health`);
 	console.log(`   Ambiente: ${env.NODE_ENV}\n`);
+	startMatchRemindersScheduler();
 });
