@@ -247,8 +247,12 @@ export class MatchesService {
 			id: match.id,
 			homeTeam: match.homeTeam,
 			awayTeam: match.awayTeam,
-			homeFlag: match.homeFlag || this.findTeamFlag(match.homeTeam),
-			awayFlag: match.awayFlag || this.findTeamFlag(match.awayTeam),
+			homeFlag:
+				this.normalizeFlagValue(match.homeFlag) ||
+				this.findTeamFlag(match.homeTeam),
+			awayFlag:
+				this.normalizeFlagValue(match.awayFlag) ||
+				this.findTeamFlag(match.awayTeam),
 			matchDate: match.matchDate,
 			stage: match.stage,
 			status: currentStatus,
@@ -292,6 +296,22 @@ export class MatchesService {
 		}
 
 		return this.teamFlagsByName.get(this.normalizeTeamName(teamName)) || null;
+	}
+
+	private normalizeFlagValue(flag: string | null): string | null {
+		const value = flag?.trim();
+		if (!value) return null;
+
+		if (/^[a-z]{2}$/i.test(value)) {
+			return this.countryCodeToFlag(value);
+		}
+
+		const isoCountryCode = FIFA_TO_ISO_COUNTRY_CODE[value.toUpperCase()];
+		if (isoCountryCode) {
+			return this.countryCodeToFlag(isoCountryCode);
+		}
+
+		return value;
 	}
 
 	private buildTeamFlagsByName(): Map<string, string> {
