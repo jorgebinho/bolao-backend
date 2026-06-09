@@ -2,26 +2,40 @@
 	"name": "bolao-backend",
 	"version": "1.0.0",
 	"description": "API REST do Bolão Copa do Mundo",
-	"main": "server.js",
+	"main": "dist/server.mjs",
 	"type": "module",
 	"scripts": {
-		"dev": "nodemon server.js",
-		"start": "node server.js",
-		"db:migrate": "npx prisma migrate dev",
-		"db:push": "npx prisma db push",
-		"db:studio": "npx prisma studio",
-		"db:generate": "npx prisma generate"
+		"dev": "tsx watch ./src/server.ts",
+		"build": "prisma generate && tsdown",
+		"start:prod": "node dist/server.mjs",
+		"check": "biome check --write",
+		"db:migrate": "prisma migrate dev",
+		"db:push": "prisma db push",
+		"db:studio": "prisma studio",
+		"db:generate": "prisma generate",
+		"db:seed:matches": "tsx scripts/importWorldCupMatches.js",
+		"recalculate-scores": "tsx scripts/recalculateScores.js"
 	},
 	"dependencies": {
-		"@prisma/client": "^5.22.0",
-		"bcryptjs": "^2.4.3",
-		"cors": "^2.8.5",
-		"dotenv": "^16.4.5",
-		"express": "^4.21.1",
-		"jsonwebtoken": "^9.0.2"
+		"@prisma/adapter-pg": "^7.8.0",
+		"@prisma/client": "^7.8.0",
+		"bcryptjs": "^3.0.3",
+		"cors": "^2.8.6",
+		"dotenv": "^17.4.2",
+		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"nodemon": "^3.1.7",
-		"prisma": "^5.22.0"
+		"@biomejs/biome": "2.4.16",
+		"@types/bcryptjs": "^3.0.0",
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/jsonwebtoken": "^9.0.10",
+		"@types/node": "^25.9.1",
+		"prisma": "^7.8.0",
+		"tsdown": "^0.22.1",
+		"tsx": "^4.22.3",
+		"typescript": "^6.0.3"
 	}
 }
