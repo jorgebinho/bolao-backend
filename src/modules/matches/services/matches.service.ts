@@ -303,12 +303,12 @@ export class MatchesService {
 		if (!value) return null;
 
 		if (/^[a-z]{2}$/i.test(value)) {
-			return this.countryCodeToFlag(value);
+			return this.countryCodeToFlagUrl(value);
 		}
 
 		const isoCountryCode = FIFA_TO_ISO_COUNTRY_CODE[value.toUpperCase()];
 		if (isoCountryCode) {
-			return this.countryCodeToFlag(isoCountryCode);
+			return this.countryCodeToFlagUrl(isoCountryCode);
 		}
 
 		return value;
@@ -323,7 +323,7 @@ export class MatchesService {
 
 			flags.set(
 				this.normalizeTeamName(team.name),
-				this.countryCodeToFlag(isoCountryCode),
+				this.countryCodeToFlagUrl(isoCountryCode),
 			);
 		}
 
@@ -339,11 +339,7 @@ export class MatchesService {
 			.trim();
 	}
 
-	private countryCodeToFlag(countryCode: string): string {
-		return countryCode
-			.toUpperCase()
-			.replace(/./g, (char) =>
-				String.fromCodePoint(127397 + char.charCodeAt(0)),
-			);
+	private countryCodeToFlagUrl(countryCode: string): string {
+		return `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`;
 	}
 }
