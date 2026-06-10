@@ -11,7 +11,7 @@ const profileUserSelect = {
 		select: { team: true, points: true, isCorrect: true },
 	},
 	_count: { select: { guesses: true, groupMemberships: true } },
-	guesses: { select: { points: true } },
+	guesses: { select: { points: true, match: { select: { status: true } } } },
 } satisfies Prisma.UserSelect;
 
 const updatedUserSelect = {
