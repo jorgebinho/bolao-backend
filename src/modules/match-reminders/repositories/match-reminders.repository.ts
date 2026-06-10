@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@PrismaGen/client.js';
 import { prisma } from '../../../shared/database/prisma.js';
 
 const reminderMatchInclude = {

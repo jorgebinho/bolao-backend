@@ -1,9 +1,9 @@
-import type { Prisma, User } from '@prisma/client';
-import { prisma } from '../../../shared/database/prisma.js';
+import type { Prisma, User } from '@PrismaGen/client.js';
 import {
-	authenticatedUserSelect,
 	type AuthenticatedUser,
+	authenticatedUserSelect,
 } from '../../../shared/auth/auth.types.js';
+import { prisma } from '../../../shared/database/prisma.js';
 
 const registerUserSelect = {
 	...authenticatedUserSelect,

@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from '@PrismaGen/client.js';
 
 export const authenticatedUserSelect = {
 	id: true,
