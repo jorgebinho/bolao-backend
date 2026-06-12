@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { summarizeFinishedGuesses } from '../../../shared/scoring/scoring.js';
 import { buildRanking } from '../../ranking/index.js';
-import {
+import type {
+	ProfileUser,
+	RecentGuess,
+	UpdatedUser,
 	UsersRepository,
-	type ProfileUser,
-	type RecentGuess,
-	type UpdatedUser,
 } from '../repositories/users.repository.js';
 
 export class UsersServiceError extends Error {
@@ -92,7 +92,10 @@ export class UsersService {
 		};
 	}
 
-	async updateProfile(userId: string, name: string): Promise<{ user: UpdatedUser }> {
+	async updateProfile(
+		userId: string,
+		name: string,
+	): Promise<{ user: UpdatedUser }> {
 		const user = await this.usersRepository.updateName(userId, name);
 		return { user };
 	}
@@ -104,7 +107,10 @@ export class UsersService {
 	}): Promise<{ message: string }> {
 		const user = await this.usersRepository.findUserPasswordById(input.userId);
 
-		if (!user || !(await bcrypt.compare(input.currentPassword, user.password))) {
+		if (
+			!user ||
+			!(await bcrypt.compare(input.currentPassword, user.password))
+		) {
 			throw new UsersServiceError(400, 'Senha atual incorreta.');
 		}
 
