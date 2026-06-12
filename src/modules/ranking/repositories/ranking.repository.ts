@@ -6,7 +6,9 @@ const rankingUserSelect = {
 	name: true,
 	points: true,
 	_count: { select: { guesses: true } },
-	guesses: { select: { points: true } },
+	guesses: {
+		select: { points: true, match: { select: { status: true } } },
+	},
 	championGuess: { select: { team: true, points: true, isCorrect: true } },
 } satisfies Prisma.UserSelect;
 
