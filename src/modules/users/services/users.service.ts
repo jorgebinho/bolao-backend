@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { summarizeFinishedGuesses } from '../../../shared/scoring/scoring.js';
 import { buildRanking } from '../../ranking/index.js';
 import {
 	UsersRepository,
@@ -60,6 +61,7 @@ export class UsersService {
 
 		const rankEntry = ranking.find((entry) => entry.id === userId);
 		const groupPosition = await this.getGroupPosition(userId, groupId);
+		const guessSummary = summarizeFinishedGuesses(user.guesses);
 
 		return {
 			profile: {
@@ -71,18 +73,10 @@ export class UsersService {
 				matchPoints: user.points,
 				championPoints: user.championGuess?.points || 0,
 				totalGuesses: user._count.guesses,
-				exactScores: user.guesses.filter((guess) => guess.points === 3).length,
-				partialScores: user.guesses.filter((guess) => guess.points === 1).length,
-				errors: user.guesses.filter(
-					(guess) => guess.match.status === 'FINISHED' && guess.points === 0,
-				).length,
-				hitRate: user._count.guesses
-					? Math.round(
-							(user.guesses.filter((guess) => guess.points > 0).length /
-								user._count.guesses) *
-								100,
-						)
-					: 0,
+				exactScores: guessSummary.exactScores,
+				partialScores: guessSummary.partialScores,
+				errors: guessSummary.errors,
+				hitRate: guessSummary.hitRate,
 				generalPosition: rankEntry?.position || null,
 				groupPosition,
 				championGuess: user.championGuess,
