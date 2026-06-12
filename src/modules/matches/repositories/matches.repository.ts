@@ -1,5 +1,5 @@
+import type { Prisma } from '@PrismaGen/client.js';
 import { prisma } from '../../../shared/database/prisma.js';
-import type { Prisma } from '@prisma/client';
 
 const matchGuessUserSelect = {
 	id: true,

@@ -1,15 +1,18 @@
+import type { MatchStatus } from '@PrismaGen/client.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AuthenticatedUser } from '../../../shared/auth/auth.types.js';
-import type { MatchStatus } from '@prisma/client';
-import {
+import type {
 	MatchesRepository,
-	type MatchWithGuesses,
+	MatchWithGuesses,
 } from '../repositories/matches.repository.js';
 
 const moduleDirname = path.dirname(fileURLToPath(import.meta.url));
-const worldCupDataDir = path.resolve(moduleDirname, '../../../../data/worldcup');
+const worldCupDataDir = path.resolve(
+	moduleDirname,
+	'../../../../data/worldcup',
+);
 const teamsPtBrPath =
 	process.env.WORLDCUP_TEAMS_PT_BR_PATH ||
 	path.join(worldCupDataDir, 'teams_pt_br_updated.csv');
@@ -121,11 +124,14 @@ export class MatchesService {
 
 	constructor(private readonly matchesRepository: MatchesRepository) {}
 
-	async listMatchesForUser(user: AuthenticatedUser): Promise<SerializedMatch[]> {
+	async listMatchesForUser(
+		user: AuthenticatedUser,
+	): Promise<SerializedMatch[]> {
 		const matches = await this.matchesRepository.findAllWithGuesses();
 		const matchesToLock = matches
 			.filter(
-				(match) => match.status === 'UPCOMING' && this.isMatchLocked(match.matchDate),
+				(match) =>
+					match.status === 'UPCOMING' && this.isMatchLocked(match.matchDate),
 			)
 			.map((match) => match.id);
 

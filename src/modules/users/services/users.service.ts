@@ -73,7 +73,9 @@ export class UsersService {
 				totalGuesses: user._count.guesses,
 				exactScores: user.guesses.filter((guess) => guess.points === 3).length,
 				partialScores: user.guesses.filter((guess) => guess.points === 1).length,
-				errors: user.guesses.filter((guess) => guess.points === 0).length,
+				errors: user.guesses.filter(
+					(guess) => guess.match.status === 'FINISHED' && guess.points === 0,
+				).length,
 				hitRate: user._count.guesses
 					? Math.round(
 							(user.guesses.filter((guess) => guess.points > 0).length /

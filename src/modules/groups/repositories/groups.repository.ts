@@ -1,4 +1,4 @@
-import type { GroupRole, Prisma } from '@prisma/client';
+import type { GroupRole, Prisma } from '@PrismaGen/client.js';
 import { prisma } from '../../../shared/database/prisma.js';
 
 const groupMemberCountInclude = {
@@ -113,7 +113,10 @@ export class GroupsRepository {
 		});
 	}
 
-	findMembership(groupId: string, userId: string): Promise<GroupMembership | null> {
+	findMembership(
+		groupId: string,
+		userId: string,
+	): Promise<GroupMembership | null> {
 		return prisma.groupMember.findUnique({
 			where: { userId_groupId: { userId, groupId } },
 			include: groupOnlyInclude,
@@ -142,7 +145,10 @@ export class GroupsRepository {
 		});
 	}
 
-	findTargetMember(groupId: string, userId: string): Promise<GroupMembership | null> {
+	findTargetMember(
+		groupId: string,
+		userId: string,
+	): Promise<GroupMembership | null> {
 		return prisma.groupMember.findUnique({
 			where: { userId_groupId: { userId, groupId } },
 			include: groupOnlyInclude,
