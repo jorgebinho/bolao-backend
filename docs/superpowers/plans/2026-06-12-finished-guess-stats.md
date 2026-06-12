@@ -12,7 +12,7 @@
 
 ## Estrutura de arquivos
 
-- Criar `src/shared/scoring/scoring.test.ts`: testes unitarios da regra compartilhada e da integracao com a normalizacao do ranking.
+- Criar `tests/scoring.test.ts`: testes unitarios da regra compartilhada e da integracao com a normalizacao do ranking.
 - Modificar `src/shared/scoring/scoring.ts`: adicionar o tipo de palpite avaliado e a funcao `summarizeFinishedGuesses`; reutiliza-la no ranking.
 - Modificar `src/modules/users/services/users.service.ts`: usar o resumo compartilhado no perfil.
 - Modificar `src/modules/ranking/repositories/ranking.repository.ts`: selecionar `match.status` para cada palpite.
@@ -22,21 +22,21 @@
 ### Task 1: Criar testes da regra de palpites finalizados
 
 **Files:**
-- Create: `src/shared/scoring/scoring.test.ts`
+- Create: `tests/scoring.test.ts`
 - Modify: `package.json`
-- Test: `src/shared/scoring/scoring.test.ts`
+- Test: `tests/scoring.test.ts`
 
 - [ ] **Step 1: Adicionar o comando de teste**
 
 Adicionar em `package.json`:
 
 ```json
-"test": "tsx --test src/shared/scoring/scoring.test.ts"
+"test": "tsx --test tests/scoring.test.ts"
 ```
 
 - [ ] **Step 2: Escrever testes que descrevem a regra desejada**
 
-Criar `src/shared/scoring/scoring.test.ts`:
+Criar `tests/scoring.test.ts`:
 
 ```ts
 import assert from 'node:assert/strict';
@@ -44,7 +44,7 @@ import test from 'node:test';
 import {
   normalizeRankingUsers,
   summarizeFinishedGuesses,
-} from './scoring.js';
+} from '../src/shared/scoring/scoring.js';
 
 test('returns zero statistics when there are no finished guesses', () => {
   const summary = summarizeFinishedGuesses([
@@ -113,7 +113,7 @@ Expected: FAIL informando que `summarizeFinishedGuesses` nao e exportada e/ou qu
 - [ ] **Step 4: Commitar apenas os testes em estado RED**
 
 ```bash
-git add package.json src/shared/scoring/scoring.test.ts
+git add package.json tests/scoring.test.ts
 git commit -m "test: cover finished guess statistics"
 ```
 
@@ -122,7 +122,7 @@ git commit -m "test: cover finished guess statistics"
 **Files:**
 - Modify: `src/shared/scoring/scoring.ts`
 - Modify: `src/modules/ranking/repositories/ranking.repository.ts`
-- Test: `src/shared/scoring/scoring.test.ts`
+- Test: `tests/scoring.test.ts`
 
 - [ ] **Step 1: Adicionar a funcao pura minima**
 
@@ -211,7 +211,7 @@ git commit -m "fix: count ranking errors from finished matches"
 **Files:**
 - Modify: `src/modules/users/services/users.service.ts`
 - Verify: `src/modules/users/repositories/users.repository.ts`
-- Test: `src/shared/scoring/scoring.test.ts`
+- Test: `tests/scoring.test.ts`
 
 - [ ] **Step 1: Confirmar o contrato do repositorio de usuarios**
 

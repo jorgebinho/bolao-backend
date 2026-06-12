@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
 	normalizeRankingUsers,
 	summarizeFinishedGuesses,
-} from './scoring.js';
+} from '../src/shared/scoring/scoring.js';
 
 test('returns zero statistics when there are no finished guesses', () => {
 	const summary = summarizeFinishedGuesses([
