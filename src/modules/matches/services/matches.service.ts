@@ -57,7 +57,7 @@ const FIFA_TO_ISO_COUNTRY_CODE: Record<string, string> = {
 	POR: 'PT',
 	QAT: 'QA',
 	RSA: 'ZA',
-	SCO: 'GB',
+	SCO: 'GB-SCT',
 	SEN: 'SN',
 	SUI: 'CH',
 	SWE: 'SE',
