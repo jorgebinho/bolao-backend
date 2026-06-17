@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import type { AuthenticatedUser } from '../../../shared/auth/auth.types.js';
-import { RankingService } from '../services/ranking.service.js';
+import type { RankingService } from '../services/ranking.service.js';
 
 const tieBreakers = [
 	'Pontos totais',
@@ -20,6 +20,19 @@ export class RankingController {
 		} catch (error) {
 			console.error('Erro ao buscar ranking:', error);
 			return res.status(500).json({ error: 'Erro ao buscar ranking.' });
+		}
+	}
+
+	async getRecentGuesses(req: Request, res: Response): Promise<Response> {
+		try {
+			const { userId } = req.params;
+			const result = await this.rankingService.getRecentGuesses(userId);
+			return res.json(result);
+		} catch (error) {
+			console.error('Erro ao buscar palpites recentes do ranking:', error);
+			return res
+				.status(500)
+				.json({ error: 'Erro ao buscar palpites recentes.' });
 		}
 	}
 
