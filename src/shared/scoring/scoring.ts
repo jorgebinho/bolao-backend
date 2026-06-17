@@ -13,8 +13,45 @@ export function calculateMatchPoints(
 	return guessResult === realResult ? 1 : 0;
 }
 
-interface RankingGuess {
+interface EvaluatedGuess {
 	points: number;
+	match: {
+		status: 'UPCOMING' | 'LOCKED' | 'FINISHED';
+	};
+}
+
+interface FinishedGuessSummary {
+	finishedGuesses: number;
+	exactScores: number;
+	partialScores: number;
+	errors: number;
+	hitRate: number;
+}
+
+export function summarizeFinishedGuesses(
+	guesses: EvaluatedGuess[],
+): FinishedGuessSummary {
+	const finishedGuesses = guesses.filter(
+		(guess) => guess.match.status === 'FINISHED',
+	);
+	const exactScores = finishedGuesses.filter(
+		(guess) => guess.points === 3,
+	).length;
+	const partialScores = finishedGuesses.filter(
+		(guess) => guess.points === 1,
+	).length;
+	const errors = finishedGuesses.filter((guess) => guess.points === 0).length;
+	const hits = exactScores + partialScores;
+
+	return {
+		finishedGuesses: finishedGuesses.length,
+		exactScores,
+		partialScores,
+		errors,
+		hitRate: finishedGuesses.length
+			? Math.round((hits / finishedGuesses.length) * 100)
+			: 0,
+	};
 }
 
 interface RankingChampionGuess {
@@ -27,7 +64,7 @@ interface RankingUser {
 	id: string;
 	name: string;
 	points: number;
-	guesses?: RankingGuess[];
+	guesses?: EvaluatedGuess[];
 	championGuess?: RankingChampionGuess | null;
 	_count?: {
 		guesses?: number;
@@ -41,10 +78,9 @@ export function normalizeRankingUsers(
 	return users
 		.map((user) => {
 			const guesses = user.guesses || [];
+			const guessSummary = summarizeFinishedGuesses(guesses);
 			const championPoints = user.championGuess?.points || 0;
 			const matchPoints = user.points || 0;
-			const exactScores = guesses.filter((guess) => guess.points === 3).length;
-			const partialScores = guesses.filter((guess) => guess.points === 1).length;
 			const totalGuesses = user._count?.guesses ?? guesses.length;
 			const totalPoints = matchPoints + championPoints;
 
@@ -55,9 +91,9 @@ export function normalizeRankingUsers(
 				championPoints,
 				totalPoints,
 				totalGuesses,
-				exactScores,
-				partialScores,
-				errors: Math.max(totalGuesses - exactScores - partialScores, 0),
+				exactScores: guessSummary.exactScores,
+				partialScores: guessSummary.partialScores,
+				errors: guessSummary.errors,
 				championGuess: user.championGuess
 					? {
 							team: user.championGuess.team,

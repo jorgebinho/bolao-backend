@@ -6,6 +6,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "tsx watch ./src/server.ts",
+		"test": "tsx --test tests/scoring.test.ts",
 		"build": "prisma generate && tsdown",
 		"start": "node dist/server.mjs",
 		"start:prod": "node dist/server.mjs",
