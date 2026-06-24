@@ -26,6 +26,57 @@ const STAGE_LABELS = {
 	Final: 'Final',
 };
 
+const FIFA_TO_ISO_COUNTRY_CODE = {
+	ALG: 'DZ',
+	ARG: 'AR',
+	AUS: 'AU',
+	AUT: 'AT',
+	BEL: 'BE',
+	BIH: 'BA',
+	BRA: 'BR',
+	CAN: 'CA',
+	CIV: 'CI',
+	COD: 'CD',
+	COL: 'CO',
+	CPV: 'CV',
+	CRO: 'HR',
+	CUR: 'CW',
+	CZE: 'CZ',
+	ECU: 'EC',
+	EGY: 'EG',
+	ENG: 'GB',
+	ESP: 'ES',
+	FRA: 'FR',
+	GER: 'DE',
+	GHA: 'GH',
+	HAI: 'HT',
+	IRN: 'IR',
+	IRQ: 'IQ',
+	JOR: 'JO',
+	JPN: 'JP',
+	KOR: 'KR',
+	KSA: 'SA',
+	MAR: 'MA',
+	MEX: 'MX',
+	NED: 'NL',
+	NOR: 'NO',
+	NZL: 'NZ',
+	PAN: 'PA',
+	PAR: 'PY',
+	POR: 'PT',
+	QAT: 'QA',
+	RSA: 'ZA',
+	SCO: 'GB-SCT',
+	SEN: 'SN',
+	SUI: 'CH',
+	SWE: 'SE',
+	TUN: 'TN',
+	TUR: 'TR',
+	URU: 'UY',
+	USA: 'US',
+	UZB: 'UZ',
+};
+
 function readCsv(fileNameOrPath) {
 	const filePath = path.isAbsolute(fileNameOrPath)
 		? fileNameOrPath
@@ -84,6 +135,39 @@ function teamNameFromMatch(
 	);
 }
 
+function teamFlagFromMatch(row, teamsById, side) {
+	const id = row[`${side}_team_id`];
+	const fifaCode = id ? teamsById.get(id)?.fifa_code : null;
+	const countryCode = fifaCode ? FIFA_TO_ISO_COUNTRY_CODE[fifaCode] : null;
+
+	return countryCode ? `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png` : null;
+}
+
+function normalizeTeamName(teamName) {
+	return String(teamName || '')
+		.normalize('NFD')
+		.replace(/\p{Diacritic}/gu, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+
+function buildTeamFlagsByName(teams) {
+	const flags = new Map();
+
+	for (const team of teams) {
+		const countryCode = FIFA_TO_ISO_COUNTRY_CODE[team.fifa_code];
+		if (!countryCode) continue;
+
+		flags.set(
+			normalizeTeamName(team.team_name),
+			`https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`,
+		);
+	}
+
+	return flags;
+}
+
 function matchKey(match) {
 	return `${match.matchDate.toISOString()}|${match.homeTeam}|${match.awayTeam}`;
 }
@@ -131,8 +215,8 @@ async function main() {
 		payload.push({
 			homeTeam: teamNameFromMatch(row, teamsById, 'home'),
 			awayTeam: teamNameFromMatch(row, teamsById, 'away'),
-			homeFlag: null,
-			awayFlag: null,
+			homeFlag: teamFlagFromMatch(row, teamsById, 'home'),
+			awayFlag: teamFlagFromMatch(row, teamsById, 'away'),
 			matchDate: parseKickoff(row.kickoff_at),
 			stage: stageLabel(stage?.stage_name, row.match_label),
 			status: 'UPCOMING',
@@ -159,6 +243,8 @@ async function main() {
 			id: true,
 			homeTeam: true,
 			awayTeam: true,
+			homeFlag: true,
+			awayFlag: true,
 			matchDate: true,
 			stage: true,
 		},
@@ -197,14 +283,16 @@ async function main() {
 			homeTeam: match.homeTeam,
 			awayTeam: match.awayTeam,
 			stage: match.stage,
-			homeFlag: null,
-			awayFlag: null,
+			homeFlag: match.homeFlag,
+			awayFlag: match.awayFlag,
 		};
 
 		if (
 			current.homeTeam === data.homeTeam &&
 			current.awayTeam === data.awayTeam &&
-			current.stage === data.stage
+			current.stage === data.stage &&
+			current.homeFlag === data.homeFlag &&
+			current.awayFlag === data.awayFlag
 		) {
 			continue;
 		}
@@ -216,9 +304,39 @@ async function main() {
 		updated += 1;
 	}
 
+	const teamFlagsByName = buildTeamFlagsByName(teams);
+	const allMatches = await prisma.match.findMany({
+		select: {
+			id: true,
+			homeTeam: true,
+			awayTeam: true,
+			homeFlag: true,
+			awayFlag: true,
+		},
+	});
+	let flagsBackfilled = 0;
+
+	for (const match of allMatches) {
+		const homeFlag =
+			match.homeFlag || teamFlagsByName.get(normalizeTeamName(match.homeTeam));
+		const awayFlag =
+			match.awayFlag || teamFlagsByName.get(normalizeTeamName(match.awayTeam));
+
+		if (homeFlag === match.homeFlag && awayFlag === match.awayFlag) {
+			continue;
+		}
+
+		await prisma.match.update({
+			where: { id: match.id },
+			data: { homeFlag, awayFlag },
+		});
+		flagsBackfilled += 1;
+	}
+
 	console.log(
 		`Importação concluída: ${missing.length} criado(s), ${updated} atualizado(s), ${existing.length} já existia(m), ${matches.length} jogo(s) no dataset.`,
 	);
+	console.log(`Flags recarregadas: ${flagsBackfilled}.`);
 }
 
 main()
