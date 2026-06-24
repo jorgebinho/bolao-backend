@@ -7,6 +7,7 @@ export const guessParamsSchema = z.object({
 export const guessBodySchema = z.object({
 	homeGuess: z.coerce.number().int().min(0),
 	awayGuess: z.coerce.number().int().min(0),
+	advancingTeam: z.string().trim().min(1).nullable().optional(),
 });
 
 export type GuessParams = z.infer<typeof guessParamsSchema>;

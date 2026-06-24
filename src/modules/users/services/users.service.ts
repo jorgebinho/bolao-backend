@@ -38,6 +38,7 @@ interface ProfileResult {
 			id: string;
 			homeGuess: number;
 			awayGuess: number;
+			advancingTeam: string | null;
 			points: number;
 			updatedAt: Date;
 			match: RecentGuess['match'];
@@ -84,6 +85,7 @@ export class UsersService {
 					id: guess.id,
 					homeGuess: guess.homeGuess,
 					awayGuess: guess.awayGuess,
+					advancingTeam: guess.advancingTeam,
 					points: guess.points,
 					updatedAt: guess.updatedAt,
 					match: guess.match,

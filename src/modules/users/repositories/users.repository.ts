@@ -30,6 +30,7 @@ const recentGuessInclude = {
 			awayTeam: true,
 			homeScore: true,
 			awayScore: true,
+			advancingTeam: true,
 			matchDate: true,
 			stage: true,
 			status: true,

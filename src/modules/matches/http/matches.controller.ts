@@ -65,6 +65,7 @@ export class MatchesController {
 				matchId: paramsResult.data.id,
 				homeGuess: bodyResult.data.homeGuess,
 				awayGuess: bodyResult.data.awayGuess,
+				advancingTeam: bodyResult.data.advancingTeam,
 			});
 
 			return res.json({ guess });

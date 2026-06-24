@@ -1,13 +1,18 @@
-require("dotenv").config();
+import 'dotenv/config';
 
-const { PrismaClient } = require("@prisma/client");
-const { calculateMatchPoints } = require("../src/services/scoring");
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../prisma/generated/client.ts';
+import {
+	calculateMatchPoints,
+	isKnockoutStage,
+} from '../src/shared/scoring/scoring.ts';
 
-const prisma = new PrismaClient();
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
 	const finishedMatches = await prisma.match.findMany({
-		where: { status: "FINISHED" },
+		where: { status: 'FINISHED' },
 		include: { guesses: true },
 	});
 
@@ -18,11 +23,34 @@ async function main() {
 			if (match.homeScore === null || match.awayScore === null) continue;
 
 			for (const guess of match.guesses) {
+				const matchAdvancingTeam =
+					match.advancingTeam ||
+					resolveWinnerTeam(
+						match.stage,
+						match.homeTeam,
+						match.awayTeam,
+						match.homeScore,
+						match.awayScore,
+					);
+				const guessAdvancingTeam =
+					guess.advancingTeam ||
+					resolveWinnerTeam(
+						match.stage,
+						match.homeTeam,
+						match.awayTeam,
+						guess.homeGuess,
+						guess.awayGuess,
+					);
 				const points = calculateMatchPoints(
 					guess.homeGuess,
 					guess.awayGuess,
 					match.homeScore,
 					match.awayScore,
+					{
+						stage: match.stage,
+						guessAdvancingTeam,
+						matchAdvancingTeam,
+					},
 				);
 
 				await tx.guess.update({
@@ -41,13 +69,18 @@ async function main() {
 	});
 
 	console.log(
-		`Pontuacao recalculada para ${finishedMatches.length} jogo(s) finalizado(s).`,
+		`Pontuação recalculada para ${finishedMatches.length} jogo(s) finalizado(s).`,
 	);
+}
+
+function resolveWinnerTeam(stage, homeTeam, awayTeam, homeScore, awayScore) {
+	if (!isKnockoutStage(stage) || homeScore === awayScore) return null;
+	return homeScore > awayScore ? homeTeam : awayTeam;
 }
 
 main()
 	.catch((err) => {
-		console.error("Erro ao recalcular pontuação:", err);
+		console.error('Erro ao recalcular pontuação:', err);
 		process.exit(1);
 	})
 	.finally(async () => {

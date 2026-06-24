@@ -43,36 +43,38 @@ model User {
 }
 
 model Match {
-  id        String      @id @default(cuid())
-  homeTeam  String
-  awayTeam  String
-  homeFlag  String?
-  awayFlag  String?
-  matchDate DateTime
-  stage     String?
-  status    MatchStatus @default(UPCOMING)
-  homeScore Int?
-  awayScore Int?
-  guesses   Guess[]
-  reminders MatchReminderEmail[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String      @id @default(cuid())
+  homeTeam      String
+  awayTeam      String
+  homeFlag      String?
+  awayFlag      String?
+  matchDate     DateTime
+  stage         String?
+  status        MatchStatus @default(UPCOMING)
+  homeScore     Int?
+  awayScore     Int?
+  advancingTeam String?
+  guesses       Guess[]
+  reminders     MatchReminderEmail[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@index([matchDate])
   @@map("matches")
 }
 
 model Guess {
-  id        String   @id @default(cuid())
-  userId    String
-  matchId   String
-  homeGuess Int
-  awayGuess Int
-  points    Int      @default(0)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String
+  matchId       String
+  homeGuess     Int
+  awayGuess     Int
+  advancingTeam String?
+  points        Int      @default(0)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match         Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([userId, matchId])
   @@map("guesses")
