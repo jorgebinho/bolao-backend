@@ -235,6 +235,24 @@ export class MatchesService {
 		return advancingTeam;
 	}
 
+	private serializeGuessAdvancingTeam(
+		match: { stage: string | null; homeTeam: string; awayTeam: string },
+		guess: {
+			homeGuess: number;
+			awayGuess: number;
+			advancingTeam: string | null;
+		},
+	): string | null {
+		const persistedTeam = String(guess.advancingTeam || '').trim();
+		if (persistedTeam) return persistedTeam;
+		if (!isKnockoutStage(match.stage)) return null;
+		if (guess.homeGuess === guess.awayGuess) return null;
+
+		return guess.homeGuess > guess.awayGuess
+			? match.homeTeam
+			: match.awayTeam;
+	}
+
 	private getMatchLockTime(matchDate: Date): Date {
 		return new Date(new Date(matchDate).getTime() - 15 * 60 * 1000);
 	}
@@ -273,7 +291,7 @@ export class MatchesService {
 					userName: guess.user?.name || 'Participante',
 					homeGuess: guess.homeGuess,
 					awayGuess: guess.awayGuess,
-					advancingTeam: guess.advancingTeam,
+					advancingTeam: this.serializeGuessAdvancingTeam(match, guess),
 					points: guess.points,
 				}))
 			: myGuess
@@ -284,7 +302,7 @@ export class MatchesService {
 							userName: currentUser.name,
 							homeGuess: myGuess.homeGuess,
 							awayGuess: myGuess.awayGuess,
-							advancingTeam: myGuess.advancingTeam,
+							advancingTeam: this.serializeGuessAdvancingTeam(match, myGuess),
 							points: myGuess.points,
 						},
 					]
@@ -322,7 +340,7 @@ export class MatchesService {
 						id: myGuess.id,
 						homeGuess: myGuess.homeGuess,
 						awayGuess: myGuess.awayGuess,
-						advancingTeam: myGuess.advancingTeam,
+						advancingTeam: this.serializeGuessAdvancingTeam(match, myGuess),
 						points: myGuess.points,
 					}
 				: null,
