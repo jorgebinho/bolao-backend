@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import type { AuthenticatedUser } from '../src/shared/auth/auth.types.js';
 import type {
 	MatchesRepository,
 	MatchWithGuesses,
 } from '../src/modules/matches/repositories/matches.repository.js';
 import { MatchesService } from '../src/modules/matches/services/matches.service.js';
+import type { AuthenticatedUser } from '../src/shared/auth/auth.types.js';
 
 const currentUser: AuthenticatedUser = {
 	id: 'user-1',

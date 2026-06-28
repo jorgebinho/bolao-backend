@@ -222,10 +222,7 @@ export class MatchesService {
 			);
 		}
 
-		if (
-			advancingTeam !== match.homeTeam &&
-			advancingTeam !== match.awayTeam
-		) {
+		if (advancingTeam !== match.homeTeam && advancingTeam !== match.awayTeam) {
 			throw new MatchesServiceError(
 				400,
 				'O classificado deve ser um dos times da partida.',
@@ -248,9 +245,7 @@ export class MatchesService {
 		if (!isKnockoutStage(match.stage)) return null;
 		if (guess.homeGuess === guess.awayGuess) return null;
 
-		return guess.homeGuess > guess.awayGuess
-			? match.homeTeam
-			: match.awayTeam;
+		return guess.homeGuess > guess.awayGuess ? match.homeTeam : match.awayTeam;
 	}
 
 	private getMatchLockTime(matchDate: Date): Date {
