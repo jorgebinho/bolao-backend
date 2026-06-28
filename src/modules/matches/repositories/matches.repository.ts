@@ -44,13 +44,14 @@ export class MatchesRepository {
 		matchId: string;
 		homeGuess: number;
 		awayGuess: number;
+		advancingTeam?: string | null;
 	}) {
-		const { userId, matchId, homeGuess, awayGuess } = input;
+		const { userId, matchId, homeGuess, awayGuess, advancingTeam } = input;
 
 		return prisma.guess.upsert({
 			where: { userId_matchId: { userId, matchId } },
-			update: { homeGuess, awayGuess },
-			create: { userId, matchId, homeGuess, awayGuess },
+			update: { homeGuess, awayGuess, advancingTeam },
+			create: { userId, matchId, homeGuess, awayGuess, advancingTeam },
 		});
 	}
 }

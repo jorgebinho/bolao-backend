@@ -15,6 +15,7 @@ interface HistoryGroup {
 		id: string;
 		homeGuess: number;
 		awayGuess: number;
+		advancingTeam: string | null;
 		points: number;
 		match: HistoryGuess['match'];
 	}>;
@@ -56,6 +57,7 @@ export class RoundsService {
 			awayTeam: string;
 			homeScore: number | null;
 			awayScore: number | null;
+			advancingTeam: string | null;
 			matchDate: Date;
 			status: StageMatch['status'];
 			myGuess: StageMatch['guesses'][number] | null;
@@ -72,6 +74,7 @@ export class RoundsService {
 				awayTeam: match.awayTeam,
 				homeScore: match.homeScore,
 				awayScore: match.awayScore,
+				advancingTeam: match.advancingTeam,
 				matchDate: match.matchDate,
 				status: match.status,
 				myGuess: match.guesses[0] || null,
@@ -112,6 +115,7 @@ export class RoundsService {
 			id: guess.id,
 			homeGuess: guess.homeGuess,
 			awayGuess: guess.awayGuess,
+			advancingTeam: guess.advancingTeam,
 			points: guess.points,
 			match: guess.match,
 		};

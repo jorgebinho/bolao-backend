@@ -13,6 +13,7 @@ export interface ScoreMatchInput {
 	matchId: string;
 	homeScore: number;
 	awayScore: number;
+	advancingTeam: string | null;
 }
 
 export interface ResetUserPasswordInput {
@@ -70,7 +71,12 @@ export function parseScoreMatchInput(body: unknown): ScoreMatchInput | null {
 		return null;
 	}
 
-	return { matchId, homeScore, awayScore };
+	return {
+		matchId,
+		homeScore,
+		awayScore,
+		advancingTeam: cleanText(record.advancingTeam),
+	};
 }
 
 export function parseChampionResultInput(

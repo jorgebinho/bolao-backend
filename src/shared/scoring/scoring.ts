@@ -1,16 +1,51 @@
 export const CHAMPION_BONUS_POINTS = 5;
 
+export function isKnockoutStage(stage: string | null | undefined): boolean {
+	return Boolean(stage) && !String(stage).startsWith('Fase de Grupos');
+}
+
+interface MatchPointOptions {
+	stage?: string | null;
+	guessAdvancingTeam?: string | null;
+	matchAdvancingTeam?: string | null;
+}
+
+function normalizeTeamName(team: string | null | undefined): string {
+	return String(team || '')
+		.normalize('NFD')
+		.replace(/\p{Diacritic}/gu, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim();
+}
+
 export function calculateMatchPoints(
 	homeGuess: number,
 	awayGuess: number,
 	homeScore: number,
 	awayScore: number,
+	options: MatchPointOptions = {},
 ): number {
-	if (homeGuess === homeScore && awayGuess === awayScore) return 3;
+	let points = 0;
 
 	const guessResult = Math.sign(homeGuess - awayGuess);
 	const realResult = Math.sign(homeScore - awayScore);
-	return guessResult === realResult ? 1 : 0;
+
+	if (homeGuess === homeScore && awayGuess === awayScore) {
+		points = 3;
+	} else if (guessResult === realResult) {
+		points = 1;
+	}
+
+	const guessedQualifiedTeam = normalizeTeamName(options.guessAdvancingTeam);
+	const realQualifiedTeam = normalizeTeamName(options.matchAdvancingTeam);
+	const hasQualifiedTeamHit =
+		isKnockoutStage(options.stage) &&
+		guessedQualifiedTeam &&
+		realQualifiedTeam &&
+		guessedQualifiedTeam === realQualifiedTeam;
+
+	return hasQualifiedTeamHit ? points + 1 : points;
 }
 
 interface EvaluatedGuess {
@@ -35,10 +70,10 @@ export function summarizeFinishedGuesses(
 		(guess) => guess.match.status === 'FINISHED',
 	);
 	const exactScores = finishedGuesses.filter(
-		(guess) => guess.points === 3,
+		(guess) => guess.points === 3 || guess.points === 4,
 	).length;
 	const partialScores = finishedGuesses.filter(
-		(guess) => guess.points === 1,
+		(guess) => guess.points === 1 || guess.points === 2,
 	).length;
 	const errors = finishedGuesses.filter((guess) => guess.points === 0).length;
 	const hits = exactScores + partialScores;

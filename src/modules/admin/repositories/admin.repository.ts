@@ -98,6 +98,7 @@ export class AdminRepository {
 		matchId: string,
 		homeScore: number,
 		awayScore: number,
+		advancingTeam: string | null,
 		updates: ScoreUpdate[],
 	): Promise<void> {
 		await prisma.$transaction(async (tx) => {
@@ -116,7 +117,7 @@ export class AdminRepository {
 
 			await tx.match.update({
 				where: { id: matchId },
-				data: { status: 'FINISHED', homeScore, awayScore },
+				data: { status: 'FINISHED', homeScore, awayScore, advancingTeam },
 			});
 		});
 	}

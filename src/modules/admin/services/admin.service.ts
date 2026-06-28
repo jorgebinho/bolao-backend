@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import {
 	CHAMPION_BONUS_POINTS,
 	calculateMatchPoints,
+	isKnockoutStage,
 } from '../../../shared/scoring/scoring.js';
 import {
 	AdminRepository,
@@ -98,6 +99,7 @@ export class AdminService {
 		matchId: string;
 		homeScore: number;
 		awayScore: number;
+		advancingTeam: string | null;
 	}) {
 		const match = await this.adminRepository.findMatchWithGuesses(input.matchId);
 
@@ -109,6 +111,7 @@ export class AdminService {
 			throw new AdminServiceError(400, 'Este jogo já foi pontuado.');
 		}
 
+		const advancingTeam = this.resolveMatchAdvancingTeam(match, input);
 		const updates: ScoreUpdate[] = match.guesses.map((guess) => ({
 			guessId: guess.id,
 			userId: guess.userId,
@@ -117,6 +120,11 @@ export class AdminService {
 				guess.awayGuess,
 				input.homeScore,
 				input.awayScore,
+				{
+					stage: match.stage,
+					guessAdvancingTeam: guess.advancingTeam,
+					matchAdvancingTeam: advancingTeam,
+				},
 			),
 		}));
 
@@ -124,6 +132,7 @@ export class AdminService {
 			input.matchId,
 			input.homeScore,
 			input.awayScore,
+			advancingTeam,
 			updates,
 		);
 
@@ -135,6 +144,44 @@ export class AdminService {
 			match: updatedMatch,
 			summary: updates,
 		};
+	}
+
+	private resolveMatchAdvancingTeam(
+		match: { stage: string | null; homeTeam: string; awayTeam: string },
+		input: {
+			homeScore: number;
+			awayScore: number;
+			advancingTeam: string | null;
+		},
+	): string | null {
+		const isDrawResult = input.homeScore === input.awayScore;
+		if (!isKnockoutStage(match.stage)) return null;
+
+		if (!isDrawResult) {
+			return input.homeScore > input.awayScore
+				? match.homeTeam
+				: match.awayTeam;
+		}
+
+		const advancingTeam = String(input.advancingTeam || '').trim();
+		if (!advancingTeam) {
+			throw new AdminServiceError(
+				400,
+				'Informe quem se classificou neste mata-mata.',
+			);
+		}
+
+		if (
+			advancingTeam !== match.homeTeam &&
+			advancingTeam !== match.awayTeam
+		) {
+			throw new AdminServiceError(
+				400,
+				'O classificado deve ser um dos times da partida.',
+			);
+		}
+
+		return advancingTeam;
 	}
 
 	async saveChampionResult(champion: string) {

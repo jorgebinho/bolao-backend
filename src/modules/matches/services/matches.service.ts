@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AuthenticatedUser } from '../../../shared/auth/auth.types.js';
+import { isKnockoutStage } from '../../../shared/scoring/scoring.js';
 import type {
 	MatchesRepository,
 	MatchWithGuesses,
@@ -74,6 +75,7 @@ interface SerializedGuess {
 	userName: string;
 	homeGuess: number;
 	awayGuess: number;
+	advancingTeam: string | null;
 	points: number;
 }
 
@@ -81,6 +83,7 @@ interface SerializedMyGuess {
 	id: string;
 	homeGuess: number;
 	awayGuess: number;
+	advancingTeam: string | null;
 	points: number;
 }
 
@@ -169,6 +172,7 @@ export class MatchesService {
 		matchId: string;
 		homeGuess: number;
 		awayGuess: number;
+		advancingTeam?: string | null;
 	}) {
 		const match = await this.matchesRepository.findById(input.matchId);
 
@@ -187,7 +191,48 @@ export class MatchesService {
 			);
 		}
 
-		return this.matchesRepository.upsertGuess(input);
+		return this.matchesRepository.upsertGuess({
+			...input,
+			advancingTeam: this.resolveGuessAdvancingTeam(match, input),
+		});
+	}
+
+	private resolveGuessAdvancingTeam(
+		match: { stage: string | null; homeTeam: string; awayTeam: string },
+		input: {
+			homeGuess: number;
+			awayGuess: number;
+			advancingTeam?: string | null;
+		},
+	): string | null {
+		const isDrawGuess = input.homeGuess === input.awayGuess;
+		if (!isKnockoutStage(match.stage)) return null;
+
+		if (!isDrawGuess) {
+			return input.homeGuess > input.awayGuess
+				? match.homeTeam
+				: match.awayTeam;
+		}
+
+		const advancingTeam = String(input.advancingTeam || '').trim();
+		if (!advancingTeam) {
+			throw new MatchesServiceError(
+				400,
+				'Informe quem se classifica neste mata-mata.',
+			);
+		}
+
+		if (
+			advancingTeam !== match.homeTeam &&
+			advancingTeam !== match.awayTeam
+		) {
+			throw new MatchesServiceError(
+				400,
+				'O classificado deve ser um dos times da partida.',
+			);
+		}
+
+		return advancingTeam;
 	}
 
 	private getMatchLockTime(matchDate: Date): Date {
@@ -228,6 +273,7 @@ export class MatchesService {
 					userName: guess.user?.name || 'Participante',
 					homeGuess: guess.homeGuess,
 					awayGuess: guess.awayGuess,
+					advancingTeam: guess.advancingTeam,
 					points: guess.points,
 				}))
 			: myGuess
@@ -238,6 +284,7 @@ export class MatchesService {
 							userName: currentUser.name,
 							homeGuess: myGuess.homeGuess,
 							awayGuess: myGuess.awayGuess,
+							advancingTeam: myGuess.advancingTeam,
 							points: myGuess.points,
 						},
 					]
@@ -275,6 +322,7 @@ export class MatchesService {
 						id: myGuess.id,
 						homeGuess: myGuess.homeGuess,
 						awayGuess: myGuess.awayGuess,
+						advancingTeam: myGuess.advancingTeam,
 						points: myGuess.points,
 					}
 				: null,

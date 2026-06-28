@@ -2,15 +2,20 @@ import type { CorsOptions } from 'cors';
 import { env } from '../config/env.js';
 
 export function createCorsOptions(): CorsOptions {
-	const allowedOrigins = [
+	const allowedOrigins = new Set([
 		env.FRONTEND_URL,
 		'http://localhost:5173',
+		'http://127.0.0.1:5173',
 		'http://localhost:3000',
-	].filter(Boolean);
+		'http://127.0.0.1:3000',
+	].filter(Boolean).flatMap((origin) => {
+		const value = String(origin).replace(/\/$/, '');
+		return [value, `${value}/`];
+	}));
 
 	return {
 		origin: (origin, callback) => {
-			if (!origin || allowedOrigins.includes(origin)) {
+			if (!origin || allowedOrigins.has(origin)) {
 				return callback(null, true);
 			}
 
