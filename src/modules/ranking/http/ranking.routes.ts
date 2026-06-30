@@ -10,6 +10,10 @@ const rankingController = new RankingController(rankingService);
 
 export const rankingRouter = express.Router();
 
+rankingRouter.get('/users/:userId/recent-guesses', authenticate, (req, res) =>
+	rankingController.getRecentGuesses(req, res),
+);
+
 rankingRouter.get('/', authenticate, (req, res) =>
 	rankingController.getRanking(req, res),
 );

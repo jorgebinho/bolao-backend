@@ -12,8 +12,27 @@ const rankingUserSelect = {
 	championGuess: { select: { team: true, points: true, isCorrect: true } },
 } satisfies Prisma.UserSelect;
 
+const recentGuessInclude = {
+	match: {
+		select: {
+			id: true,
+			homeTeam: true,
+			awayTeam: true,
+			homeScore: true,
+			awayScore: true,
+			matchDate: true,
+			stage: true,
+			status: true,
+		},
+	},
+} satisfies Prisma.GuessInclude;
+
 export type RankingUser = Prisma.UserGetPayload<{
 	select: typeof rankingUserSelect;
+}>;
+
+export type RankingRecentGuess = Prisma.GuessGetPayload<{
+	include: typeof recentGuessInclude;
 }>;
 
 export class RankingRepository {
@@ -21,6 +40,15 @@ export class RankingRepository {
 		return prisma.user.findMany({
 			where: userIds ? { id: { in: userIds } } : undefined,
 			select: rankingUserSelect,
+		});
+	}
+
+	findRecentGuessesByUserId(userId: string): Promise<RankingRecentGuess[]> {
+		return prisma.guess.findMany({
+			where: { userId },
+			orderBy: { updatedAt: 'desc' },
+			take: 3,
+			include: recentGuessInclude,
 		});
 	}
 }
