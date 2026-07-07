@@ -103,7 +103,36 @@ Exemplo para simular outra data/hora:
 npm run reminders:send -- --now=2026-06-11T17:15:00.000Z
 ```
 
-Em producao, agende esse comando em um cron externo a cada 5 ou 10 minutos.
+Em producao, o envio automatico fica configurado pelo GitHub Actions em
+`.github/workflows/send-match-reminders.yml`. O workflow roda a cada 10 minutos
+e tambem pode ser acionado manualmente pela aba Actions.
+
+Configure estes secrets no repositorio do backend:
+
+```txt
+DATABASE_URL
+DIRECT_URL
+JWT_SECRET
+SMTP_HOST
+SMTP_USER
+SMTP_PASS
+SMTP_FROM
+```
+
+Configure estas variables no repositorio, se quiser sobrescrever os padroes:
+
+```txt
+FRONTEND_URL
+SMTP_PORT
+SMTP_SECURE
+JWT_EXPIRES_IN
+```
+
+O Supabase nao envia esses lembretes. Ele e usado como banco de dados neste
+projeto. As configuracoes de SMTP precisam estar no ambiente que roda o envio
+dos lembretes, neste caso nos secrets/variables do GitHub Actions. So configure
+SMTP no Supabase se voce estiver usando Supabase Auth para e-mails de login,
+confirmacao ou recuperacao de senha do proprio Supabase.
 
 ## Rodar em desenvolvimento
 

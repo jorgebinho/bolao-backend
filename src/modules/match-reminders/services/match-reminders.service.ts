@@ -1,15 +1,76 @@
 import { format } from 'node:util';
 import { env } from '../../../shared/config/env.js';
 import type { Mailer } from '../../../shared/email/mailer.js';
-import {
+import type {
 	MatchRemindersRepository,
-	type ReminderMatch,
-	type ReminderUser,
+	ReminderMatch,
+	ReminderUser,
 } from '../repositories/match-reminders.repository.js';
 
 const REMINDER_LEAD_TIME_MS = 2 * 60 * 60 * 1000;
 const LOCK_BEFORE_MATCH_MS = 15 * 60 * 1000;
 const DEFAULT_FRONTEND_URL = 'https://bolao-frontend-dusky.vercel.app/';
+const TEAM_COUNTRY_CODES: Record<string, string> = {
+	'africa do sul': 'ZA',
+	alemanha: 'DE',
+	argelia: 'DZ',
+	argentina: 'AR',
+	'arabia saudita': 'SA',
+	australia: 'AU',
+	austria: 'AT',
+	belgica: 'BE',
+	'bosnia e herzegovina': 'BA',
+	brasil: 'BR',
+	canada: 'CA',
+	'cabo verde': 'CV',
+	camaroes: 'CM',
+	catar: 'QA',
+	colombia: 'CO',
+	'coreia do sul': 'KR',
+	'costa do marfim': 'CI',
+	croacia: 'HR',
+	curacao: 'CW',
+	dinamarca: 'DK',
+	egito: 'EG',
+	equador: 'EC',
+	escocia: 'GB-SCT',
+	eslovaquia: 'SK',
+	espanha: 'ES',
+	'estados unidos': 'US',
+	franca: 'FR',
+	gana: 'GH',
+	georgia: 'GE',
+	haiti: 'HT',
+	holanda: 'NL',
+	hungria: 'HU',
+	inglaterra: 'GB',
+	ira: 'IR',
+	iraque: 'IQ',
+	italia: 'IT',
+	jamaica: 'JM',
+	japao: 'JP',
+	jordania: 'JO',
+	marrocos: 'MA',
+	mexico: 'MX',
+	nigeria: 'NG',
+	noruega: 'NO',
+	'nova zelandia': 'NZ',
+	'paises baixos': 'NL',
+	panama: 'PA',
+	paraguai: 'PY',
+	portugal: 'PT',
+	'republica democratica do congo': 'CD',
+	'republica tcheca': 'CZ',
+	senegal: 'SN',
+	servia: 'RS',
+	suecia: 'SE',
+	suica: 'CH',
+	tunisia: 'TN',
+	turquia: 'TR',
+	uruguai: 'UY',
+	uzbequistao: 'UZ',
+	venezuela: 'VE',
+};
 
 export interface ReminderSummary {
 	matchesChecked: number;
@@ -38,10 +99,11 @@ export class MatchRemindersService {
 		let emailsSkipped = 0;
 
 		for (const match of matches) {
-			const users = await this.matchRemindersRepository.findUsersWithoutGuessOrReminder({
-				guessedUserIds: match.guesses.map((guess) => guess.userId),
-				remindedUserIds: match.reminders.map((reminder) => reminder.userId),
-			});
+			const users =
+				await this.matchRemindersRepository.findUsersWithoutGuessOrReminder({
+					guessedUserIds: match.guesses.map((guess) => guess.userId),
+					remindedUserIds: match.reminders.map((reminder) => reminder.userId),
+				});
 
 			for (const user of users) {
 				try {
@@ -137,11 +199,17 @@ export class MatchRemindersService {
 		lockLabel: string;
 		frontendUrl: string;
 	}): string {
-		const { greetingName, match, dateLabel, timeLabel, lockLabel, frontendUrl } =
-			input;
+		const {
+			greetingName,
+			match,
+			dateLabel,
+			timeLabel,
+			lockLabel,
+			frontendUrl,
+		} = input;
 		const stageLabel = match.stage || 'Copa do Mundo 2026';
-		const homeInitial = this.teamInitial(match.homeTeam);
-		const awayInitial = this.teamInitial(match.awayTeam);
+		const homeBadge = this.buildTeamBadge(match.homeTeam, match.homeFlag);
+		const awayBadge = this.buildTeamBadge(match.awayTeam, match.awayFlag);
 
 		return `
 			<div style="margin:0;padding:24px;background:#e8e8e8;font-family:Arial,Helvetica,sans-serif;color:#0a0a0a;">
@@ -165,9 +233,9 @@ export class MatchRemindersService {
 						</div>
 
 						<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-							<tr>
+								<tr>
 								<td width="34%" align="center" style="padding:28px 12px;">
-									<div style="display:inline-block;border:4px solid #0a0a0a;background:#fff;padding:14px 16px;font-size:20px;font-weight:900;">${this.escapeHtml(homeInitial)}</div>
+									${homeBadge}
 									<div style="margin-top:12px;font-size:18px;font-weight:900;">${this.escapeHtml(match.homeTeam)}</div>
 								</td>
 								<td width="32%" align="center" style="padding:28px 8px;">
@@ -175,7 +243,7 @@ export class MatchRemindersService {
 									<div style="margin-top:8px;font-size:14px;font-weight:800;color:#777;">Fecha ${this.escapeHtml(lockLabel)}</div>
 								</td>
 								<td width="34%" align="center" style="padding:28px 12px;">
-									<div style="display:inline-block;border:4px solid #0a0a0a;background:#fff;padding:14px 16px;font-size:20px;font-weight:900;">${this.escapeHtml(awayInitial)}</div>
+									${awayBadge}
 									<div style="margin-top:12px;font-size:18px;font-weight:900;">${this.escapeHtml(match.awayTeam)}</div>
 								</td>
 							</tr>
@@ -190,6 +258,50 @@ export class MatchRemindersService {
 				</div>
 			</div>
 		`;
+	}
+
+	private buildTeamBadge(teamName: string, flag: string | null): string {
+		const flagImage =
+			this.normalizeFlagImage(flag) || this.findTeamFlagImage(teamName);
+
+		if (flagImage) {
+			return `<img src="${this.escapeHtml(flagImage)}" alt="${this.escapeHtml(teamName)}" width="56" height="40" style="display:inline-block;width:56px;height:40px;object-fit:cover;border:4px solid #0a0a0a;background:#fff;box-shadow:4px 4px 0 #0a0a0a;">`;
+		}
+
+		return `<div style="display:inline-block;border:4px solid #0a0a0a;background:#fff;padding:14px 16px;font-size:20px;font-weight:900;">${this.escapeHtml(this.teamInitial(teamName))}</div>`;
+	}
+
+	private normalizeFlagImage(flag: string | null): string | null {
+		const value = flag?.trim();
+		if (!value) return null;
+
+		if (/^https?:\/\//i.test(value) || /^data:image\//i.test(value)) {
+			return value;
+		}
+
+		if (/^[a-z]{2}$/i.test(value)) {
+			return `https://flagcdn.com/w80/${value.toLowerCase()}.png`;
+		}
+
+		return null;
+	}
+
+	private findTeamFlagImage(teamName: string): string | null {
+		const countryCode = TEAM_COUNTRY_CODES[this.normalizeTeamName(teamName)];
+		return countryCode ? this.countryCodeToFlagUrl(countryCode) : null;
+	}
+
+	private normalizeTeamName(teamName: string): string {
+		return teamName
+			.normalize('NFD')
+			.replace(/\p{Diacritic}/gu, '')
+			.toLowerCase()
+			.replace(/[^a-z0-9]+/g, ' ')
+			.trim();
+	}
+
+	private countryCodeToFlagUrl(countryCode: string): string {
+		return `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`;
 	}
 
 	private formatCountdown(minutesToLock: number): string {
@@ -207,7 +319,9 @@ export class MatchRemindersService {
 			.map((word) => word.replace(/[^\p{L}]/gu, ''))
 			.filter(Boolean);
 		const initials =
-			words.length > 1 ? `${words[0][0]}${words.at(-1)?.[0]}` : words[0]?.slice(0, 2);
+			words.length > 1
+				? `${words[0][0]}${words.at(-1)?.[0]}`
+				: words[0]?.slice(0, 2);
 		return (initials || '?').toUpperCase();
 	}
 }
